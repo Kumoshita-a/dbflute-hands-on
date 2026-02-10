@@ -47,6 +47,13 @@ public class HandsOn02Test extends UnitContainerTestCase {
         // ## Act ##
         Member member = memberBhv.selectEntityWithDeletedCheck(cb -> {
             cb.query().setMemberId_Equal(1);
+            // 9999に変えると以下になる
+            // org.dbflute.exception.EntityAlreadyDeletedException: Look! Read the message below.
+            // Please confirm the existence of your target record on your database.
+            // Does the target record really created before this operation?
+            // Has the target record been deleted by other thread?
+            // It is precondition that the record exists on your database.
+            // selectEntityWithDeletedCheckは必ず1件ある状態で検索を行うで、id=9999に一致するデータがないため本当にあるか？削除されていないか？のエラー文が出ている
         });
 
         // ## Assert ##
