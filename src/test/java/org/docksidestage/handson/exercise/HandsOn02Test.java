@@ -22,6 +22,7 @@ public class HandsOn02Test extends UnitContainerTestCase {
         int count = memberBhv.selectCount(cb -> {});
 
         // ## Assert ##
+        log("会員テストデータ件数: {}", count);
         assertTrue(count > 0);
     }
 
@@ -37,6 +38,7 @@ public class HandsOn02Test extends UnitContainerTestCase {
         // ## Assert ##
         assertHasAnyElement(memberList);
         for (Member member : memberList) {
+            log("会員名称: {}", member.getMemberName());
             assertTrue(member.getMemberName().startsWith("S"));
         }
     }
@@ -57,6 +59,7 @@ public class HandsOn02Test extends UnitContainerTestCase {
         });
 
         // ## Assert ##
+        log("会員ID: {}, 会員名称: {}", member.getMemberId(), member.getMemberName());
         assertEquals(Integer.valueOf(1), member.getMemberId());
     }
 
@@ -72,6 +75,7 @@ public class HandsOn02Test extends UnitContainerTestCase {
         // ## Assert ##
         assertHasAnyElement(memberList);
         for (Member member : memberList) {
+            log("会員名称: {}, 生年月日: {}", member.getMemberName(), member.getBirthdate());
             assertNull(member.getBirthdate());
         }
     }
