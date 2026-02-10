@@ -7,6 +7,10 @@ import org.docksidestage.handson.dbflute.exbhv.MemberBhv;
 import org.docksidestage.handson.dbflute.exentity.Member;
 import org.docksidestage.handson.unit.UnitContainerTestCase;
 
+// #1on1: マスタテーブルとは？どこまでがマスター？話 (2026/02/10)
+// #1on1: ReplaceSchemaでの例外翻訳やデバッグ情報の導出などの話 (2026/02/10)
+// DateAdjustmentなど、テストデータ登録ツールもなかなか奥が深い。
+// #1on1: MySQLの中の翻訳？Field 'REGISTER_DATETIME' doesn't have a default value (2026/02/10)
 /**
  * @author a.kumoshita
  */
@@ -47,6 +51,16 @@ public class HandsOn02Test extends UnitContainerTestCase {
         // ## Arrange ##
 
         // ## Act ##
+        // #1on1: DBFluteのOptionalのコンセプト (2026/02/10)
+        // Java標準のOptionalのorElseThrow()の理想と現実のジレンマ。
+        // (つどつどorElseThrow面倒問題と、orElseThrowの例外メッセージ雑問題)
+        // alwaysPresent()の紹介。
+        //int memberId = 9999;
+        //memberBhv.selectEntity(cb -> { // as OptionalEntity
+        //    cb.query().setMemberId_Equal(memberId);
+        //}).alwaysPresent(mb -> {
+        //    // ...
+        //});
         Member member = memberBhv.selectEntityWithDeletedCheck(cb -> {
             cb.query().setMemberId_Equal(1);
             // 9999に変えると以下になる
@@ -63,6 +77,7 @@ public class HandsOn02Test extends UnitContainerTestCase {
         assertEquals(Integer.valueOf(1), member.getMemberId());
     }
 
+    // TODO jflute 次回1on1ふぉろーここから (2026/02/10)
     public void test_searchMember_birthdateIsNull() throws Exception {
         // ## Arrange ##
 
