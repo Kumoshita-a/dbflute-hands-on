@@ -1,6 +1,8 @@
 package org.docksidestage.handson.exercise;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import javax.annotation.Resource;
@@ -8,9 +10,14 @@ import javax.annotation.Resource;
 import org.dbflute.cbean.result.ListResultBean;
 import org.docksidestage.handson.dbflute.exbhv.MemberBhv;
 import org.docksidestage.handson.dbflute.exbhv.MemberSecurityBhv;
+import org.docksidestage.handson.dbflute.exbhv.PurchaseBhv;
 import org.docksidestage.handson.dbflute.exentity.Member;
 import org.docksidestage.handson.dbflute.exentity.MemberSecurity;
 import org.docksidestage.handson.dbflute.exentity.MemberStatus;
+import org.docksidestage.handson.dbflute.exentity.Product;
+import org.docksidestage.handson.dbflute.exentity.Purchase;
+import org.dbflute.exception.NonSetupSelectRelationAccessException;
+import org.dbflute.exception.NonSpecifiedColumnAccessException;
 import org.docksidestage.handson.unit.UnitContainerTestCase;
 
 /**
@@ -23,6 +30,9 @@ public class HandsOn03Test extends UnitContainerTestCase {
 
     @Resource
     private MemberSecurityBhv memberSecurityBhv;
+
+    @Resource
+    private PurchaseBhv purchaseBhv;
 
     /**
      * 会員名称がSで始まる1968年1月1日以前に生まれた会員を検索
@@ -104,6 +114,122 @@ public class HandsOn03Test extends UnitContainerTestCase {
             String reminderQuestion = security.getReminderQuestion();
             log("会員名称: {}, リマインダ質問: {}", member.getMemberName(), reminderQuestion);
             assertTrue(reminderQuestion.contains("2"));
+        }
+    }
+
+    /**
+     * 会員ステータスの表示順カラムで会員を並べて検索
+     * 会員ステータスのデータ自体は要らない
+     * その次には、会員の会員IDの降順で並べる
+     */
+    public void test_searchMember_orderByMemberStatusDisplayOrder() throws Exception {
+        // ## Arrange ##
+
+        // ## Act ##
+        ListResultBean<Member> memberList = memberBhv.selectList(cb -> {
+            cb.query().queryMemberStatus().addOrderBy_DisplayOrder_Asc();
+            cb.query().addOrderBy_MemberId_Desc();
+        });
+
+        // ## Assert ##
+        assertHasAnyElement(memberList);
+        for (Member member : memberList) {
+            log("会員名称: {}, ステータスコード: {}", member.getMemberName(), member.getMemberStatusCode());
+
+            // 会員ステータスのデータが取れていないことをアサート
+            assertException(NonSetupSelectRelationAccessException.class, () -> member.getMemberStatus().get());
+        }
+        // 会員ステータスごとに固まっていることをアサート
+        // 一度離れたステータスコードが再び出現しないことを確認
+        // FIXME: この実装でよいかはあとで見直す
+        for (int i = 0; i < memberList.size(); i++) {
+            String currentCode = memberList.get(i).getMemberStatusCode();
+            for (int j = i + 1; j < memberList.size(); j++) {
+                if (!currentCode.equals(memberList.get(j).getMemberStatusCode())) {
+                    for (int k = j + 1; k < memberList.size(); k++) {
+                        if (currentCode.equals(memberList.get(k).getMemberStatusCode())) {
+                            fail("会員ステータスが固まって並んでいません: " + currentCode);
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * 生年月日が存在する会員の購入を検索
+     * 会員名称と会員ステータス名称と商品名を取得する
+     * 購入日時の降順、購入価格の降順、商品IDの昇順、会員IDの昇順で並べる
+     */
+    public void test_searchPurchase_memberBirthdateExists() throws Exception {
+        // ## Arrange ##
+
+        // ## Act ##
+        ListResultBean<Purchase> purchaseList = purchaseBhv.selectList(cb -> {
+            cb.setupSelect_Member().withMemberStatus();
+            cb.setupSelect_Product();
+            cb.query().queryMember().setBirthdate_IsNotNull();
+            cb.query().addOrderBy_PurchaseDatetime_Desc();
+            cb.query().addOrderBy_PurchasePrice_Desc();
+            cb.query().addOrderBy_ProductId_Asc();
+            cb.query().addOrderBy_MemberId_Asc();
+        });
+
+        // ## Assert ##
+        assertHasAnyElement(purchaseList);
+        for (Purchase purchase : purchaseList) {
+            Member member = purchase.getMember().get();
+            MemberStatus status = member.getMemberStatus().get();
+            Product product = purchase.getProduct().get();
+            log("会員名称: {}, ステータス: {}, 商品名: {}", member.getMemberName(), status.getMemberStatusName(), product.getProductName());
+            assertNotNull(member.getBirthdate());
+        }
+    }
+
+    /**
+     * 2005年10月の1日から3日までに正式会員になった会員を検索
+     * 会員名称に "vi" を含む会員を検索
+     * 会員ステータスも取得（ただし名称だけ）
+     */
+    public void test_searchMember_formalizedIn200510_01to03() throws Exception {
+        // ## Arrange ##
+        String fromDateStr = "2005/10/01";
+        String toDateStr = "2005/10/03";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+        LocalDateTime fromDate = LocalDate.parse(fromDateStr, formatter).atStartOfDay();
+        LocalDateTime toDate = LocalDate.parse(toDateStr, formatter).atStartOfDay();
+
+        // 10月1日ジャストの正式会員日時を持つ会員データを作成
+        adjustMember_FormalizedDatetime_FirstOnly(fromDate, "vi");
+
+        // ## Act ##
+        ListResultBean<Member> memberList = memberBhv.selectList(cb -> {
+            cb.setupSelect_MemberStatus();
+            cb.specify().specifyMemberStatus().columnMemberStatusName();
+            cb.query().setFormalizedDatetime_FromTo(fromDate, toDate, op -> op.compareAsDate());
+            cb.query().setMemberName_LikeSearch("vi", op -> op.likeContain());
+        });
+
+        // ## Assert ##
+        assertHasAnyElement(memberList);
+        for (Member member : memberList) {
+            MemberStatus status = member.getMemberStatus().get();
+            log("会員名称: {}, 正式会員日時: {}, ステータス名称: {}", member.getMemberName(), member.getFormalizedDatetime(), status.getMemberStatusName());
+
+            // 会員名称にviが含まれていることをアサート
+            assertContains(member.getMemberName(), "vi");
+
+            // 正式会員日時が指定範囲内であることをアサート
+            LocalDateTime formalizedDatetime = member.getFormalizedDatetime();
+            assertNotNull(formalizedDatetime);
+            assertTrue(!formalizedDatetime.isBefore(fromDate));
+            // compareAsDate なので toDate の翌日未満
+            assertTrue(formalizedDatetime.isBefore(toDate.plusDays(1)));
+
+            // 会員ステータスがコードと名称だけ取得されていることをアサート（descriptionにアクセスすると例外）
+            assertException(NonSpecifiedColumnAccessException.class, () -> status.getDescription());
+            assertException(NonSpecifiedColumnAccessException.class, () -> status.getDisplayOrder());
         }
     }
 }
