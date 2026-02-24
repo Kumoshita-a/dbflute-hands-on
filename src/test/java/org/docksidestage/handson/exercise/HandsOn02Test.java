@@ -77,7 +77,7 @@ public class HandsOn02Test extends UnitContainerTestCase {
         assertEquals(Integer.valueOf(1), member.getMemberId());
     }
 
-    // TODO jflute 次回1on1ふぉろーここから (2026/02/10)
+    // done jflute 次回1on1ふぉろーここから (2026/02/10)
     public void test_searchMember_birthdateIsNull() throws Exception {
         // ## Arrange ##
 

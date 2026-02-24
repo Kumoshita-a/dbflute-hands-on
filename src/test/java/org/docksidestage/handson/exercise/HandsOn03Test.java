@@ -41,6 +41,8 @@ public class HandsOn03Test extends UnitContainerTestCase {
      */
     public void test_searchMember_nameStartsWithS_bornBefore19680101() throws Exception {
         // ## Arrange ##
+        // #1on1: 日付表現曖昧の話 (2026/02/24)
+        // 来週の水曜まで休みますはどこまで休む話。
         LocalDate targetDate = LocalDate.of(1968, 1, 1);
 
         // ## Act ##
@@ -57,6 +59,7 @@ public class HandsOn03Test extends UnitContainerTestCase {
             MemberStatus status = member.getMemberStatus().get();
             log("会員名称: {}, 生年月日: {}, ステータス: {}", member.getMemberName(), member.getBirthdate(), status.getMemberStatusName());
             assertTrue(member.getMemberName().startsWith("S"));
+            // TODO kumoshita ロジカルな行はできるだけスッキリ、getBirthdate()を抽出しましょう by jflute (2026/02/24)
             assertTrue(member.getBirthdate().isBefore(targetDate) || member.getBirthdate().isEqual(targetDate));
         }
     }
@@ -79,6 +82,21 @@ public class HandsOn03Test extends UnitContainerTestCase {
         // ## Assert ##
         assertHasAnyElement(memberList);
         for (Member member : memberList) {
+            // TODO kumoshita なかった場合、そもそもここのget()で落ちてassertNotNull()まで行かない by jflute (2026/02/24)
+            // 関連テーブルはOptionalなので、Optionalのpresentを見てアサートする方が意図が正確。
+            //
+            // #1on1: 会員ステータスが絶対にする確証は？ (2026/02/24)
+            // ER図上のカージナリティ表現、黒丸がmany-to-one側のoneに付いていないから必ず存在する by くもしたさん
+            // FK制約の話。
+            // NotNullかつFK制約のカラムであれば、探しに行きさえすれば必ず存在する。(黒丸が付いてない理由とも言える)
+            // if文を書く理由もある一方で、if文を書かない理由も存在する。そこを明確にしておかないと。
+            //
+            // #1on1: 会員セキュリティが絶対にする確証は？ (2026/02/24)
+            // 探しに行く方向とFKの方向が逆、物理的にはセキュリティに黒丸がないことが保証されているわけではない。
+            // 業務制約(論理制約)と言える。(人間の決め事で、実際にチェックされるわけじゃない)
+            // テーブルコメントに "会員とは one-to-one で、会員一人につき必ず一つのセキュリティ情報がある" と書いてある。
+            //
+            // 関連テーブルを取得したときは、常に「必ずあるのか？ないのか？」とその理由を確認する習慣を。
             MemberStatus status = member.getMemberStatus().get();
             MemberSecurity security = member.getMemberSecurityAsOne().get();
             log("会員名称: {}, 生年月日: {}, ステータス: {}, リマインダ質問: {}",
@@ -104,13 +122,14 @@ public class HandsOn03Test extends UnitContainerTestCase {
         // ## Assert ##
         assertHasAnyElement(memberList);
         List<Integer> memberIdList = memberList.stream().map(Member::getMemberId).collect(java.util.stream.Collectors.toList());
+        // #1on1: ループの外で検索しているのGood // (2026/02/24)
         ListResultBean<MemberSecurity> securityList = memberSecurityBhv.selectList(cb -> {
             cb.query().setMemberId_InScope(memberIdList);
         });
         for (Member member : memberList) {
             MemberSecurity security = securityList.stream()
                     .filter(s -> s.getMemberId().equals(member.getMemberId()))
-                    .findFirst().get();
+                    .findFirst().get(); // #1on1: orElseThrow()のジレンマの良い例
             String reminderQuestion = security.getReminderQuestion();
             log("会員名称: {}, リマインダ質問: {}", member.getMemberName(), reminderQuestion);
             assertTrue(reminderQuestion.contains("2"));
@@ -139,6 +158,7 @@ public class HandsOn03Test extends UnitContainerTestCase {
             // 会員ステータスのデータが取れていないことをアサート
             assertException(NonSetupSelectRelationAccessException.class, () -> member.getMemberStatus().get());
         }
+        // TODO jflute 次回1on1にてフォロー (2026/02/24)
         // 会員ステータスごとに固まっていることをアサート
         // 一度離れたステータスコードが再び出現しないことを確認
         // FIXME: この実装でよいかはあとで見直す
