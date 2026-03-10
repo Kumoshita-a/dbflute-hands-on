@@ -61,7 +61,7 @@ public class HandsOn03Test extends UnitContainerTestCase {
             MemberStatus status = member.getMemberStatus().get();
             log("会員名称: {}, 生年月日: {}, ステータス: {}", member.getMemberName(), member.getBirthdate(), status.getMemberStatusName());
             assertTrue(member.getMemberName().startsWith("S"));
-            // TODO done kumoshita ロジカルな行はできるだけスッキリ、getBirthdate()を抽出しましょう by jflute (2026/02/24)
+            // done kumoshita ロジカルな行はできるだけスッキリ、getBirthdate()を抽出しましょう by jflute (2026/02/24)
             LocalDate birthdate = member.getBirthdate();
             assertTrue(birthdate.isBefore(targetDate) || birthdate.isEqual(targetDate));
         }
@@ -85,7 +85,7 @@ public class HandsOn03Test extends UnitContainerTestCase {
         // ## Assert ##
         assertHasAnyElement(memberList);
         for (Member member : memberList) {
-            // TODO done kumoshita なかった場合、そもそもここのget()で落ちてassertNotNull()まで行かない by jflute (2026/02/24)
+            // done kumoshita なかった場合、そもそもここのget()で落ちてassertNotNull()まで行かない by jflute (2026/02/24)
             // 関連テーブルはOptionalなので、Optionalのpresentを見てアサートする方が意図が正確。
             //
             // #1on1: 会員ステータスが絶対にする確証は？ (2026/02/24)
@@ -151,16 +151,38 @@ public class HandsOn03Test extends UnitContainerTestCase {
         ListResultBean<Member> memberList = memberBhv.selectList(cb -> {
             cb.query().queryMemberStatus().addOrderBy_DisplayOrder_Asc();
             cb.query().addOrderBy_MemberId_Desc();
+
+            // #1on1: 会員ステータスコードで並べるのではなく、会員ステータステーブルの表示順カラムで並べるのはなぜ？ (2026/03/10)
+            //cb.query().addOrderBy_MemberStatusCode_Asc();
+            // どっちもカテゴリ順に並ぶのは変わりがないわけですが...
+            // コードだと、FML, PRV, WDL => このコードのアルファベット順で並ぶ (業務的には意図しない順序になる)
+            // 会員ステータスの表示順カラムなら、カテゴリの順序をマスターテーブルで制御できる
+            //
+            // 一方で、コードを 0(PRV), 1(FML), 2(WDL) っていう風に数値にする文化もある。
+            // o 後からカテゴリ順を変えられない (一度決めたらそれっきり)
+            // o あとは、数値だと人間がデータを目で見た時にわかりにくい
+            // (なのでjfluteの身の回りでは、文字列でコードを表現することが多い)
+            
+            // #1on1: 第二ソートキーで会員ID(PK)が入っている業務的な意義は？ (2026/03/10)
+            // DisplayOrderだけだと、一つカテゴリ内のソート順が定まっていない。
+            // そうなると結果どうなるか？論理的にはランダムになります。
+            // 実質的にはMySQLのなんかの都合で固定になることもありますが、保証されていない。
+            // 極論、検索ボタンを押すたびに、順序が変わる。(内容変わってないのに、UI的に良くない)
+            // なので、固定化するために、最後PKとかでユニークなソートを入れておくとか良くやる。
         });
+        // #1on1: defaultValueMap.dataprop をくぼさんが消しちゃってた事件 (2026/03/10)
+        // MySQLのsqlModeのお話深掘り、MySQLの買収の歴史。
 
         // ## Assert ##
         assertHasAnyElement(memberList);
         for (Member member : memberList) {
             log("会員名称: {}, ステータスコード: {}", member.getMemberName(), member.getMemberStatusCode());
 
+            // #1on1: Good, 確実にsetupSelectしてないことを示す方法としては、確かにこれしかない (2026/03/10)
             // 会員ステータスのデータが取れていないことをアサート
             assertException(NonSetupSelectRelationAccessException.class, () -> member.getMemberStatus().get());
         }
+        // #1on1: Good, アサートの背景ロジックがコメントで書いてあるのわかりやすい (2026/03/10)
         // 会員ステータスごとに固まっていることをアサート
         // 一度離れたステータスコードが再び出現しないことを確認
         Set<String> finishedCodes = new HashSet<>();
@@ -174,7 +196,25 @@ public class HandsOn03Test extends UnitContainerTestCase {
                 }
                 previousCode = currentCode;
             }
+            // #1on1: 模範の実装と見比べながら...ifの外に出せるのであれば出した方が読み手は理解しやすい (2026/03/10)
+            // #1on1: プログラミング的なチェック方法と、データ分析的なチェック方法 (2026/03/10)
+            // エラーメッセージとかをきっちり整えるとかだと、プログラミング的なチェック方法の方が柔軟性高い。
         }
+// おもいで: 三重ループ (2026/03/10)
+//        -        for (int i = 0; i < memberList.size(); i++) {
+//        -            String currentCode = memberList.get(i).getMemberStatusCode();
+//        -            for (int j = i + 1; j < memberList.size(); j++) {
+//        -                if (!currentCode.equals(memberList.get(j).getMemberStatusCode())) {
+//        -                    for (int k = j + 1; k < memberList.size(); k++) {
+//        -                        if (currentCode.equals(memberList.get(k).getMemberStatusCode())) {
+//        -                            fail("会員ステータスが固まって並んでいません: " + currentCode);
+//        -                        }
+//        -                    }
+//        -                    break;
+// #1on1: 思考の踊り場として、強引でも実現できるコードを最初に作るというのはとても良いこと (2026/03/10)
+// // jfluteのプログラマーオススメ五冊
+// https://jflute.hatenadiary.jp/entry/20150727/fivebooks
+// プロトタイピングの話と通じる。
     }
 
     /**
