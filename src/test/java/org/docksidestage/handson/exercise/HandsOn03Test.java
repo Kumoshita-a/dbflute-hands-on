@@ -59,8 +59,9 @@ public class HandsOn03Test extends UnitContainerTestCase {
             MemberStatus status = member.getMemberStatus().get();
             log("会員名称: {}, 生年月日: {}, ステータス: {}", member.getMemberName(), member.getBirthdate(), status.getMemberStatusName());
             assertTrue(member.getMemberName().startsWith("S"));
-            // TODO kumoshita ロジカルな行はできるだけスッキリ、getBirthdate()を抽出しましょう by jflute (2026/02/24)
-            assertTrue(member.getBirthdate().isBefore(targetDate) || member.getBirthdate().isEqual(targetDate));
+            // TODO done kumoshita ロジカルな行はできるだけスッキリ、getBirthdate()を抽出しましょう by jflute (2026/02/24)
+            LocalDate birthdate = member.getBirthdate();
+            assertTrue(birthdate.isBefore(targetDate) || birthdate.isEqual(targetDate));
         }
     }
 
@@ -82,7 +83,7 @@ public class HandsOn03Test extends UnitContainerTestCase {
         // ## Assert ##
         assertHasAnyElement(memberList);
         for (Member member : memberList) {
-            // TODO kumoshita なかった場合、そもそもここのget()で落ちてassertNotNull()まで行かない by jflute (2026/02/24)
+            // TODO done kumoshita なかった場合、そもそもここのget()で落ちてassertNotNull()まで行かない by jflute (2026/02/24)
             // 関連テーブルはOptionalなので、Optionalのpresentを見てアサートする方が意図が正確。
             //
             // #1on1: 会員ステータスが絶対にする確証は？ (2026/02/24)
@@ -97,12 +98,12 @@ public class HandsOn03Test extends UnitContainerTestCase {
             // テーブルコメントに "会員とは one-to-one で、会員一人につき必ず一つのセキュリティ情報がある" と書いてある。
             //
             // 関連テーブルを取得したときは、常に「必ずあるのか？ないのか？」とその理由を確認する習慣を。
+            assertTrue(member.getMemberStatus().isPresent());
+            assertTrue(member.getMemberSecurityAsOne().isPresent());
             MemberStatus status = member.getMemberStatus().get();
             MemberSecurity security = member.getMemberSecurityAsOne().get();
             log("会員名称: {}, 生年月日: {}, ステータス: {}, リマインダ質問: {}",
                     member.getMemberName(), member.getBirthdate(), status.getMemberStatusName(), security.getReminderQuestion());
-            assertNotNull(status);
-            assertNotNull(security);
         }
     }
 
