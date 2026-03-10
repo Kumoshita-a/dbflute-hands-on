@@ -3,7 +3,9 @@ package org.docksidestage.handson.exercise;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Resource;
 
@@ -159,21 +161,18 @@ public class HandsOn03Test extends UnitContainerTestCase {
             // 会員ステータスのデータが取れていないことをアサート
             assertException(NonSetupSelectRelationAccessException.class, () -> member.getMemberStatus().get());
         }
-        // TODO jflute 次回1on1にてフォロー (2026/02/24)
         // 会員ステータスごとに固まっていることをアサート
         // 一度離れたステータスコードが再び出現しないことを確認
-        // FIXME: この実装でよいかはあとで見直す
-        for (int i = 0; i < memberList.size(); i++) {
-            String currentCode = memberList.get(i).getMemberStatusCode();
-            for (int j = i + 1; j < memberList.size(); j++) {
-                if (!currentCode.equals(memberList.get(j).getMemberStatusCode())) {
-                    for (int k = j + 1; k < memberList.size(); k++) {
-                        if (currentCode.equals(memberList.get(k).getMemberStatusCode())) {
-                            fail("会員ステータスが固まって並んでいません: " + currentCode);
-                        }
-                    }
-                    break;
+        Set<String> finishedCodes = new HashSet<>();
+        String previousCode = null;
+        for (Member member : memberList) {
+            String currentCode = member.getMemberStatusCode();
+            if (!currentCode.equals(previousCode)) {
+                assertFalse("会員ステータスが固まって並んでいません: " + currentCode, finishedCodes.contains(currentCode));
+                if (previousCode != null) {
+                    finishedCodes.add(previousCode);
                 }
+                previousCode = currentCode;
             }
         }
     }
