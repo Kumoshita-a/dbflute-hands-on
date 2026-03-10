@@ -16,7 +16,7 @@
 #
 map:{
     ; driver   = com.mysql.jdbc.Driver
-    ; url      = jdbc:mysql://localhost:43376/maihamadb?allowPublicKeyRetrieval=true&sslMode=DISABLED&sessionVariables=sql_mode='NO_ENGINE_SUBSTITUTION'&jdbcCompliantTruncation=false
+    ; url      = jdbc:mysql://localhost:43376/maihamadb?allowPublicKeyRetrieval=true&sslMode=DISABLED
     ; schema   =  
     ; user     = maihamadb
     ; password = maihamadb
