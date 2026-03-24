@@ -6,20 +6,25 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Resource;
 
 import org.dbflute.cbean.result.ListResultBean;
+import org.dbflute.cbean.result.PagingResultBean;
+import org.dbflute.exception.NonSetupSelectRelationAccessException;
+import org.dbflute.exception.NonSpecifiedColumnAccessException;
 import org.docksidestage.handson.dbflute.exbhv.MemberBhv;
 import org.docksidestage.handson.dbflute.exbhv.MemberSecurityBhv;
 import org.docksidestage.handson.dbflute.exbhv.PurchaseBhv;
 import org.docksidestage.handson.dbflute.exentity.Member;
 import org.docksidestage.handson.dbflute.exentity.MemberSecurity;
 import org.docksidestage.handson.dbflute.exentity.MemberStatus;
+import org.docksidestage.handson.dbflute.exentity.MemberWithdrawal;
 import org.docksidestage.handson.dbflute.exentity.Product;
+import org.docksidestage.handson.dbflute.exentity.ProductCategory;
 import org.docksidestage.handson.dbflute.exentity.Purchase;
-import org.dbflute.exception.NonSetupSelectRelationAccessException;
-import org.dbflute.exception.NonSpecifiedColumnAccessException;
+import org.docksidestage.handson.dbflute.exentity.WithdrawalReason;
 import org.docksidestage.handson.unit.UnitContainerTestCase;
 
 /**
@@ -291,5 +296,243 @@ public class HandsOn03Test extends UnitContainerTestCase {
             assertException(NonSpecifiedColumnAccessException.class, () -> status.getDescription());
             assertException(NonSpecifiedColumnAccessException.class, () -> status.getDisplayOrder());
         }
+    }
+
+    /**
+     * 正式会員になってから一週間以内の購入を検索
+     * 会員、会員ステータス、会員セキュリティ情報、商品、商品ステータス、商品カテゴリ、商品カテゴリの親カテゴリを取得
+     * 親カテゴリ名が取得できていることをアサート
+     * 購入日時が正式会員日時から一週間以内であることをアサート
+     */
+    public void test_searchPurchase_purchaseDatetimeWithinOneWeekFromFormalized() throws Exception {
+        // ## Arrange ##
+        adjustPurchase_PurchaseDatetime_fromFormalizedDatetimeInWeek();
+
+        // ## Act ##
+        ListResultBean<Purchase> purchaseList = purchaseBhv.selectList(cb -> {
+            cb.setupSelect_Member().withMemberStatus();
+            cb.setupSelect_Member().withMemberSecurityAsOne();
+            cb.setupSelect_Product().withProductStatus();
+            cb.setupSelect_Product().withProductCategory().withProductCategorySelf();
+            cb.query().queryMember().setFormalizedDatetime_IsNotNull();
+            cb.columnQuery(colCB -> {
+                colCB.specify().columnPurchaseDatetime();
+            }).greaterEqual(colCB -> {
+                colCB.specify().specifyMember().columnFormalizedDatetime();
+            });
+            cb.columnQuery(colCB -> {
+                colCB.specify().columnPurchaseDatetime();
+            }).lessEqual(colCB -> {
+                colCB.specify().specifyMember().columnFormalizedDatetime();
+            }).convert(op -> op.addDay(7));
+        });
+
+        // ## Assert ##
+        assertHasAnyElement(purchaseList);
+        for (Purchase purchase : purchaseList) {
+            Member member = purchase.getMember().get();
+            MemberStatus status = member.getMemberStatus().get();
+            Product product = purchase.getProduct().get();
+            ProductCategory category = product.getProductCategory().get();
+            ProductCategory parentCategory = category.getProductCategorySelf().get();
+
+            log("会員名称: {}, ステータス: {}, 商品名: {}, カテゴリ: {}, 親カテゴリ: {}",
+                    member.getMemberName(), status.getMemberStatusName(), product.getProductName(),
+                    category.getProductCategoryName(), parentCategory.getProductCategoryName());
+
+            // 親カテゴリ名が取得できていることをアサート
+            assertNotNull(parentCategory.getProductCategoryName());
+
+            // 購入日時が正式会員日時から一週間以内であることをアサート
+            LocalDateTime formalizedDatetime = member.getFormalizedDatetime();
+            LocalDateTime purchaseDatetime = purchase.getPurchaseDatetime();
+            assertNotNull(formalizedDatetime);
+            assertTrue(purchaseDatetime.compareTo(formalizedDatetime) >= 0);
+            assertTrue(purchaseDatetime.isBefore(formalizedDatetime.plusDays(7).plusDays(1)));
+        }
+    }
+
+    /**
+     * 1974年以前に生まれた、もしくは生年月日が不明な会員を検索
+     * 会員ステータス名称、リマインダ質問と回答、退会理由を取得する
+     * 若い順で並べる。生年月日がない人が先頭に来るようにする
+     * 1974年12月31日と1975年1月1日の境界テストデータを作成してアサートする
+     */
+    public void test_searchMember_bornBefore1974OrUnknown() throws Exception {
+        // ## Arrange ##
+        String targetDateStr = "1974/01/01";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+        LocalDate targetDate = LocalDate.parse(targetDateStr, formatter);
+
+        // 境界テストデータ作成: 1974年12月31日生まれ（検索対象になるべき）
+        Member borderMember1 = memberBhv.selectEntityWithDeletedCheck(cb -> {
+            cb.query().setBirthdate_IsNotNull();
+            cb.query().addOrderBy_MemberId_Asc();
+            cb.fetchFirst(1);
+        });
+        borderMember1.setBirthdate(LocalDate.of(1974, 12, 31));
+        memberBhv.updateNonstrict(borderMember1);
+
+        // 境界テストデータ作成: 1975年1月1日生まれ（検索対象にならないべき）
+        Member borderMember2 = memberBhv.selectEntityWithDeletedCheck(cb -> {
+            cb.query().setBirthdate_IsNotNull();
+            cb.query().setMemberId_NotEqual(borderMember1.getMemberId());
+            cb.query().addOrderBy_MemberId_Asc();
+            cb.fetchFirst(1);
+        });
+        borderMember2.setBirthdate(LocalDate.of(1975, 1, 1));
+        memberBhv.updateNonstrict(borderMember2);
+
+        // ## Act ##
+        ListResultBean<Member> memberList = memberBhv.selectList(cb -> {
+            cb.setupSelect_MemberStatus();
+            cb.specify().specifyMemberStatus().columnMemberStatusName();
+            cb.setupSelect_MemberSecurityAsOne();
+            cb.setupSelect_MemberWithdrawalAsOne().withWithdrawalReason();
+            cb.orScopeQuery(orCB -> {
+                orCB.query().setBirthdate_FromTo(null, targetDate, op -> op.allowOneSide().compareAsYear());
+                orCB.query().setBirthdate_IsNull();
+            });
+            cb.query().addOrderBy_Birthdate_Desc().withNullsFirst();
+            cb.query().addOrderBy_MemberId_Asc();
+        });
+
+        // ## Assert ##
+        assertHasAnyElement(memberList);
+        boolean nullsFirst = true;
+        boolean foundBorder1974 = false;
+        boolean notFoundBorder1975 = true;
+        for (Member member : memberList) {
+            MemberStatus status = member.getMemberStatus().get();
+            MemberSecurity security = member.getMemberSecurityAsOne().get();
+            String withdrawalReasonText = member.getMemberWithdrawalAsOne().map(withdrawal -> {
+                return withdrawal.getWithdrawalReason().map(WithdrawalReason::getWithdrawalReasonText).orElse("理由なし");
+            }).orElse("退会なし");
+
+            log("会員名称: {}, 生年月日: {}, ステータス: {}, リマインダ質問: {}, リマインダ回答: {}, 退会理由: {}",
+                    member.getMemberName(), member.getBirthdate(), status.getMemberStatusName(),
+                    security.getReminderQuestion(), security.getReminderAnswer(), withdrawalReasonText);
+
+            LocalDate birthdate = member.getBirthdate();
+            if (birthdate != null) {
+                // 生年月日がある場合、1974年以前であることをアサート
+                assertTrue(birthdate.getYear() <= 1974);
+                // nullsFirstがtrueのまま（＝まだ生年月日ありの会員が来ていない）ならnullsFirst確認完了
+                nullsFirst = false;
+            } else {
+                // 生年月日nullの会員はnullsFirstなので先頭に来るべき
+                assertTrue("生年月日がnullの会員が先頭に来ていません", nullsFirst);
+            }
+
+            if (member.getMemberId().equals(borderMember1.getMemberId())) {
+                foundBorder1974 = true;
+            }
+            if (member.getMemberId().equals(borderMember2.getMemberId())) {
+                notFoundBorder1975 = false;
+            }
+        }
+        assertTrue("1974年12月31日生まれの会員が見つかりません", foundBorder1974);
+        assertTrue("1975年1月1日生まれの会員が含まれてはいけません", notFoundBorder1975);
+    }
+
+    /**
+     * 生年月日がない会員を検索
+     * 2005年6月に正式会員になった会員を優先的に先頭に並べる
+     * 第二ソートキーは会員IDの降順
+     */
+    public void test_searchMember_noBirthdate_prioritizeFormalized200506() throws Exception {
+        // ## Arrange ##
+        String targetDateStr = "2005/06/01";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+        LocalDateTime targetDate = LocalDate.parse(targetDateStr, formatter).atStartOfDay();
+
+        // ## Act ##
+        ListResultBean<Member> memberList = memberBhv.selectList(cb -> {
+            cb.query().setBirthdate_IsNull();
+            cb.query().addOrderBy_FormalizedDatetime_Asc().withManualOrder(op -> {
+                op.when_FromTo(targetDate, targetDate, ftop -> ftop.compareAsMonth());
+            });
+            cb.query().addOrderBy_MemberId_Desc();
+        });
+
+        // ## Assert ##
+        assertHasAnyElement(memberList);
+        boolean priorityEnded = false;
+        for (Member member : memberList) {
+            log("会員名称: {}, 生年月日: {}, 正式会員日時: {}", member.getMemberName(), member.getBirthdate(), member.getFormalizedDatetime());
+
+            // 生年月日がないことをアサート
+            assertNull(member.getBirthdate());
+
+            // 2005年6月の正式会員が先頭に来ていることをアサート
+            LocalDateTime formalizedDatetime = member.getFormalizedDatetime();
+            if (!priorityEnded) {
+                if (formalizedDatetime == null || formalizedDatetime.getYear() != 2005 || formalizedDatetime.getMonthValue() != 6) {
+                    priorityEnded = true;
+                }
+            } else {
+                // 優先グループが終わったら2005年6月のメンバーが出てこないことをアサート
+                if (formalizedDatetime != null) {
+                    assertFalse("2005年6月の正式会員が先頭に固まっていません",
+                            formalizedDatetime.getYear() == 2005 && formalizedDatetime.getMonthValue() == 6);
+                }
+            }
+        }
+    }
+
+    /**
+     * ページング: 会員を検索（ページサイズ3、1ページ目）
+     * 総レコード数、総ページ数、ページ範囲、ナビゲーションを確認
+     */
+    public void test_searchMember_paging() throws Exception {
+        // ## Arrange ##
+        int pageSize = 3;
+        int pageNumber = 1;
+
+        // ## Act ##
+        PagingResultBean<Member> memberPage = memberBhv.selectPage(cb -> {
+            cb.query().addOrderBy_MemberId_Asc();
+            cb.paging(pageSize, pageNumber);
+        });
+
+        // ## Assert ##
+        assertHasAnyElement(memberPage);
+        log("総レコード数: {}", memberPage.getAllRecordCount());
+        log("総ページ数: {}", memberPage.getAllPageCount());
+        log("現在のページ件数: {}", memberPage.size());
+        log("前ページあり: {}", memberPage.isExistPrePage());
+        log("次ページあり: {}", memberPage.isExistNextPage());
+        for (Member member : memberPage) {
+            log("会員ID: {}, 会員名称: {}", member.getMemberId(), member.getMemberName());
+        }
+
+        // 1ページ目なので前ページはない
+        assertFalse(memberPage.isExistPrePage());
+        // データが3件より多いなら次ページがある
+        assertTrue(memberPage.isExistNextPage());
+        // ページサイズが3なので、返却件数は3
+        assertEquals(pageSize, memberPage.size());
+    }
+
+    /**
+     * カーソル検索: 会員ステータスの表示順で会員をカーソル検索
+     * 全件をメモリに載せない
+     */
+    public void test_searchMember_cursor() throws Exception {
+        // ## Arrange ##
+        AtomicInteger counter = new AtomicInteger(0);
+
+        // ## Act ##
+        memberBhv.selectCursor(cb -> {
+            cb.query().queryMemberStatus().addOrderBy_DisplayOrder_Asc();
+            cb.query().addOrderBy_MemberId_Asc();
+        }, member -> {
+            counter.incrementAndGet();
+            log("会員名称: {}, ステータスコード: {}", member.getMemberName(), member.getMemberStatusCode());
+        });
+
+        // ## Assert ##
+        log("処理件数: {}", counter.get());
+        assertTrue(counter.get() > 0);
     }
 }
