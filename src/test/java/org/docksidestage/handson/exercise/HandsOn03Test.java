@@ -231,6 +231,7 @@ public class HandsOn03Test extends UnitContainerTestCase {
         // ## Arrange ##
 
         // ## Act ##
+        // #1on1: 基点テーブルが購入に変わった。(生年月日が存在する会員の...購入) (2026/03/24)
         ListResultBean<Purchase> purchaseList = purchaseBhv.selectList(cb -> {
             cb.setupSelect_Member().withMemberStatus();
             cb.setupSelect_Product();
@@ -270,6 +271,7 @@ public class HandsOn03Test extends UnitContainerTestCase {
 
         // ## Act ##
         ListResultBean<Member> memberList = memberBhv.selectList(cb -> {
+            // #1on1: 現場でのSpecifyColumnの匙加減の話 (SpecifyColumn必須の現場の話) (2026/03/24)
             cb.setupSelect_MemberStatus();
             cb.specify().specifyMemberStatus().columnMemberStatusName();
             cb.query().setFormalizedDatetime_FromTo(fromDate, toDate, op -> op.compareAsDate());
@@ -306,6 +308,7 @@ public class HandsOn03Test extends UnitContainerTestCase {
      */
     public void test_searchPurchase_purchaseDatetimeWithinOneWeekFromFormalized() throws Exception {
         // ## Arrange ##
+        // TODO kumoshita "※修行++: 実装できたら、こんどはスーパークラスのメソッド adjustPurchase_PurchaseDatetime_...()" by jflute (2026/03/24)
         adjustPurchase_PurchaseDatetime_fromFormalizedDatetimeInWeek();
 
         // ## Act ##
@@ -325,6 +328,7 @@ public class HandsOn03Test extends UnitContainerTestCase {
             }).lessEqual(colCB -> {
                 colCB.specify().specifyMember().columnFormalizedDatetime();
             }).convert(op -> op.addDay(7));
+            // #1on1: DBMSの方言を吸収するというO/Rマッパーの役割 (2026/03/24)
         });
 
         // ## Assert ##
@@ -348,6 +352,8 @@ public class HandsOn03Test extends UnitContainerTestCase {
             LocalDateTime purchaseDatetime = purchase.getPurchaseDatetime();
             assertNotNull(formalizedDatetime);
             assertTrue(purchaseDatetime.compareTo(formalizedDatetime) >= 0);
+            // TODO kumoshita SQL(addDay7)よりもアサートが広くなっている by jflute (2026/03/24)
+            // addDay7ぴったりを含めたいだけなのに、もっと先まで対象にしてしまっている。
             assertTrue(purchaseDatetime.isBefore(formalizedDatetime.plusDays(7).plusDays(1)));
         }
     }
@@ -364,7 +370,9 @@ public class HandsOn03Test extends UnitContainerTestCase {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
         LocalDate targetDate = LocalDate.parse(targetDateStr, formatter);
 
+        // #1on1: privateのadjustメソッドに切り出しても良い話 (2026/03/24)
         // 境界テストデータ作成: 1974年12月31日生まれ（検索対象になるべき）
+        // TODO kumoshita assertでも使っているのであれば、1,2じゃなくて1974Lastとかデータの意味を変数名に by jflute (2026/03/24)
         Member borderMember1 = memberBhv.selectEntityWithDeletedCheck(cb -> {
             cb.query().setBirthdate_IsNotNull();
             cb.query().addOrderBy_MemberId_Asc();
@@ -389,6 +397,8 @@ public class HandsOn03Test extends UnitContainerTestCase {
             cb.specify().specifyMemberStatus().columnMemberStatusName();
             cb.setupSelect_MemberSecurityAsOne();
             cb.setupSelect_MemberWithdrawalAsOne().withWithdrawalReason();
+            // #1on1: 一応、FromToOption自体に orIsNull() があって、汎用的なorScopeQueryを使わなくても大丈夫だったりする (2026/03/24)
+            // cb.query().setBirthdate_FromTo(null, targetDate, op -> op.allowOneSide().compareAsYear().orIsNull());
             cb.orScopeQuery(orCB -> {
                 orCB.query().setBirthdate_FromTo(null, targetDate, op -> op.allowOneSide().compareAsYear());
                 orCB.query().setBirthdate_IsNull();
@@ -398,8 +408,11 @@ public class HandsOn03Test extends UnitContainerTestCase {
         });
 
         // ## Assert ##
+        // TODO jflute 次回1on1ここから (2026/03/24)
         assertHasAnyElement(memberList);
         boolean nullsFirst = true;
+        // TODO kumoshita 見つかるはずとか見つからないはずとかの表現はassertに任せて、ここでは単純に... by jflute (2026/03/24)
+        // どっちも見つかったかどうか？で統一的に名前を付けても良いかと。
         boolean foundBorder1974 = false;
         boolean notFoundBorder1975 = true;
         for (Member member : memberList) {
