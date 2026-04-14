@@ -21,7 +21,6 @@ import org.docksidestage.handson.dbflute.exbhv.PurchaseBhv;
 import org.docksidestage.handson.dbflute.exentity.Member;
 import org.docksidestage.handson.dbflute.exentity.MemberSecurity;
 import org.docksidestage.handson.dbflute.exentity.MemberStatus;
-import org.docksidestage.handson.dbflute.exentity.MemberWithdrawal;
 import org.docksidestage.handson.dbflute.exentity.Product;
 import org.docksidestage.handson.dbflute.exentity.ProductCategory;
 import org.docksidestage.handson.dbflute.exentity.Purchase;
@@ -309,7 +308,7 @@ public class HandsOn03Test extends UnitContainerTestCase {
      */
     public void test_searchPurchase_purchaseDatetimeWithinOneWeekFromFormalized() throws Exception {
         // ## Arrange ##
-        // TODO done kumoshita "※修行++: 実装できたら、こんどはスーパークラスのメソッド adjustPurchase_PurchaseDatetime_...()" by jflute (2026/03/24)
+        // done kumoshita "※修行++: 実装できたら、こんどはスーパークラスのメソッド adjustPurchase_PurchaseDatetime_...()" by jflute (2026/03/24)
         // 会員3(Mijatovic, formalized=2005-10-03 13:03:30)の購入日時を 2005-10-10 23:59:59 に更新する。
         // これは formalizedDatetime + 7日 の日末(23:59:59)に位置する境界データ。
         adjustPurchase_PurchaseDatetime_fromFormalizedDatetimeInWeek();
@@ -325,6 +324,17 @@ public class HandsOn03Test extends UnitContainerTestCase {
         //   addDay(7).truncTime().addDay(1) で「7日後の翌日0時」を境界にし、lessThan(<) で比較。
         //   SQL: PURCHASE_DATETIME < truncTime(date_add(FORMALIZED_DATETIME, 7 day)) + 1 day = PURCHASE_DATETIME < 2005-10-11 00:00:00
         //   23:59:59 < 00:00:00(翌日) → TRUE（含まれる）
+        /*
+        // 10/3                    10/10     10/11
+        //  13h                      0h  13h   0h
+        //   |                       |    |    |
+        //   |       D               | I  |    | P
+        // A |                       |H  J|L   |O
+        //   |C                  E   G    K    N
+        //   B                      F|    |   M|
+        //   |                       |         |
+        //
+         */
 
         // ## Act ##
         ListResultBean<Purchase> purchaseList = purchaseBhv.selectList(cb -> {
@@ -368,7 +378,7 @@ public class HandsOn03Test extends UnitContainerTestCase {
             LocalDateTime purchaseDatetime = purchase.getPurchaseDatetime();
             assertNotNull(formalizedDatetime);
             assertTrue(purchaseDatetime.compareTo(formalizedDatetime) >= 0);
-            // TODO done kumoshita SQL(addDay7)よりもアサートが広くなっている by jflute (2026/03/24)
+            // done kumoshita SQL(addDay7)よりもアサートが広くなっている by jflute (2026/03/24)
             // addDay7ぴったりを含めたいだけなのに、もっと先まで対象にしてしまっている。
             // 7日後の日付の翌日0時より前であることをアサート
             LocalDateTime boundaryDatetime = formalizedDatetime.plusDays(7).toLocalDate().plusDays(1).atStartOfDay();
@@ -390,7 +400,7 @@ public class HandsOn03Test extends UnitContainerTestCase {
 
         // #1on1: privateのadjustメソッドに切り出しても良い話 (2026/03/24)
         // 境界テストデータ作成: 1974年12月31日生まれ（検索対象になるべき）
-        // TODO done kumoshita assertでも使っているのであれば、1,2じゃなくて1974Lastとかデータの意味を変数名に by jflute (2026/03/24)
+        // done kumoshita assertでも使っているのであれば、1,2じゃなくて1974Lastとかデータの意味を変数名に by jflute (2026/03/24)
         Member borderMember1974Last = memberBhv.selectEntityWithDeletedCheck(cb -> {
             cb.query().setBirthdate_IsNotNull();
             cb.query().addOrderBy_MemberId_Asc();
@@ -426,16 +436,22 @@ public class HandsOn03Test extends UnitContainerTestCase {
         });
 
         // ## Assert ##
-        // TODO jflute 次回1on1ここから (2026/03/24)
+        // done jflute 次回1on1ここから (2026/03/24)
         assertHasAnyElement(memberList);
         boolean nullsFirst = true;
-        // TODO done kumoshita 見つかるはずとか見つからないはずとかの表現はassertに任せて、ここでは単純に... by jflute (2026/03/24)
+        // done kumoshita 見つかるはずとか見つからないはずとかの表現はassertに任せて、ここでは単純に... by jflute (2026/03/24)
         // どっちも見つかったかどうか？で統一的に名前を付けても良いかと。
         boolean foundBorder1974 = false;
         boolean foundBorder1975 = false;
         for (Member member : memberList) {
             MemberStatus status = member.getMemberStatus().get();
             MemberSecurity security = member.getMemberSecurityAsOne().get();
+            // #1on1: どこで途切れたかがわかるようにしているので、ネストmapになってる (2026/04/14)
+            // もし、途切れを意識する必要がないとかであれば、flatMapからmapでOK
+            //member.getMemberWithdrawalAsOne()
+            //    .flatMap(wdl -> wdl.getWithdrawalReason())
+            //    .map(reason -> reason.getWithdrawalReasonText())
+            //    .orElse("none");
             String withdrawalReasonText = member.getMemberWithdrawalAsOne().map(withdrawal -> {
                 return withdrawal.getWithdrawalReason().map(WithdrawalReason::getWithdrawalReasonText).orElse("理由なし");
             }).orElse("退会なし");
@@ -480,6 +496,7 @@ public class HandsOn03Test extends UnitContainerTestCase {
         // ## Act ##
         ListResultBean<Member> memberList = memberBhv.selectList(cb -> {
             cb.query().setBirthdate_IsNull();
+            // #1on1: ManualOrderの現場での利用のされ方について (2026/04/14)
             cb.query().addOrderBy_FormalizedDatetime_Asc().withManualOrder(op -> {
                 op.when_FromTo(targetDate, targetDate, ftop -> ftop.compareAsMonth());
             });
@@ -608,6 +625,7 @@ public class HandsOn03Test extends UnitContainerTestCase {
     // ===================================================================================
     //                                                          InnerJoinAutoDetect
     //                                                          ====================
+    // #1on1: 昔のMySQLの実行計画のお話も (2026/04/14)
     /**
      * InnerJoinAutoDetect機能の確認
      * test_searchMember_securityReminderContains2 のケースを利用して確認
