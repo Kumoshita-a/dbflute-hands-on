@@ -309,8 +309,22 @@ public class HandsOn03Test extends UnitContainerTestCase {
      */
     public void test_searchPurchase_purchaseDatetimeWithinOneWeekFromFormalized() throws Exception {
         // ## Arrange ##
-        // TODO kumoshita "※修行++: 実装できたら、こんどはスーパークラスのメソッド adjustPurchase_PurchaseDatetime_...()" by jflute (2026/03/24)
+        // TODO done kumoshita "※修行++: 実装できたら、こんどはスーパークラスのメソッド adjustPurchase_PurchaseDatetime_...()" by jflute (2026/03/24)
+        // 会員3(Mijatovic, formalized=2005-10-03 13:03:30)の購入日時を 2005-10-10 23:59:59 に更新する。
+        // これは formalizedDatetime + 7日 の日末(23:59:59)に位置する境界データ。
         adjustPurchase_PurchaseDatetime_fromFormalizedDatetimeInWeek();
+
+        // 分析: adjustPurchaseが作った境界データは、もとの addDay(7) の条件では検索結果に含まれない。
+        //   SQL条件: PURCHASE_DATETIME <= date_add(FORMALIZED_DATETIME, interval 7 day)
+        //   date_add(2005-10-03 13:03:30, 7 day) = 2005-10-10 13:03:30
+        //   境界データの購入日時: 2005-10-10 23:59:59
+        //   23:59:59 <= 13:03:30 → FALSE（含まれない）
+        // 原因: date_addは時刻コンポーネントを保持するため、+7日の境界が「7日後の同時刻」になる。
+        //        adjustPurchaseは日末(23:59:59)にデータを置くので、同日でも時刻が超過する。
+        // 対策: 「一週間以内」を「7日後の日付の終わりまで」と解釈し直す。
+        //   addDay(7).truncTime().addDay(1) で「7日後の翌日0時」を境界にし、lessThan(<) で比較。
+        //   SQL: PURCHASE_DATETIME < truncTime(date_add(FORMALIZED_DATETIME, 7 day)) + 1 day = PURCHASE_DATETIME < 2005-10-11 00:00:00
+        //   23:59:59 < 00:00:00(翌日) → TRUE（含まれる）
 
         // ## Act ##
         ListResultBean<Purchase> purchaseList = purchaseBhv.selectList(cb -> {
@@ -324,11 +338,12 @@ public class HandsOn03Test extends UnitContainerTestCase {
             }).greaterEqual(colCB -> {
                 colCB.specify().specifyMember().columnFormalizedDatetime();
             });
+            // 「一週間以内」= 7日後の日付が終わるまで（日付レベルの一週間）
             cb.columnQuery(colCB -> {
                 colCB.specify().columnPurchaseDatetime();
-            }).lessEqual(colCB -> {
+            }).lessThan(colCB -> {
                 colCB.specify().specifyMember().columnFormalizedDatetime();
-            }).convert(op -> op.addDay(7));
+            }).convert(op -> op.addDay(7).truncTime().addDay(1));
             // #1on1: DBMSの方言を吸収するというO/Rマッパーの役割 (2026/03/24)
         });
 
@@ -348,14 +363,16 @@ public class HandsOn03Test extends UnitContainerTestCase {
             // 親カテゴリ名が取得できていることをアサート
             assertNotNull(parentCategory.getProductCategoryName());
 
-            // 購入日時が正式会員日時から一週間以内であることをアサート
+            // 購入日時が正式会員日時から一週間以内(日付レベル)であることをアサート
             LocalDateTime formalizedDatetime = member.getFormalizedDatetime();
             LocalDateTime purchaseDatetime = purchase.getPurchaseDatetime();
             assertNotNull(formalizedDatetime);
             assertTrue(purchaseDatetime.compareTo(formalizedDatetime) >= 0);
             // TODO done kumoshita SQL(addDay7)よりもアサートが広くなっている by jflute (2026/03/24)
             // addDay7ぴったりを含めたいだけなのに、もっと先まで対象にしてしまっている。
-            assertTrue(!purchaseDatetime.isAfter(formalizedDatetime.plusDays(7)));
+            // 7日後の日付の翌日0時より前であることをアサート
+            LocalDateTime boundaryDatetime = formalizedDatetime.plusDays(7).toLocalDate().plusDays(1).atStartOfDay();
+            assertTrue(purchaseDatetime.isBefore(boundaryDatetime));
         }
     }
 
