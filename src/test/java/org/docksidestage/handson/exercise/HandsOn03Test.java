@@ -352,9 +352,9 @@ public class HandsOn03Test extends UnitContainerTestCase {
             LocalDateTime purchaseDatetime = purchase.getPurchaseDatetime();
             assertNotNull(formalizedDatetime);
             assertTrue(purchaseDatetime.compareTo(formalizedDatetime) >= 0);
-            // TODO kumoshita SQL(addDay7)よりもアサートが広くなっている by jflute (2026/03/24)
+            // TODO done kumoshita SQL(addDay7)よりもアサートが広くなっている by jflute (2026/03/24)
             // addDay7ぴったりを含めたいだけなのに、もっと先まで対象にしてしまっている。
-            assertTrue(purchaseDatetime.isBefore(formalizedDatetime.plusDays(7).plusDays(1)));
+            assertTrue(!purchaseDatetime.isAfter(formalizedDatetime.plusDays(7)));
         }
     }
 
@@ -372,24 +372,24 @@ public class HandsOn03Test extends UnitContainerTestCase {
 
         // #1on1: privateのadjustメソッドに切り出しても良い話 (2026/03/24)
         // 境界テストデータ作成: 1974年12月31日生まれ（検索対象になるべき）
-        // TODO kumoshita assertでも使っているのであれば、1,2じゃなくて1974Lastとかデータの意味を変数名に by jflute (2026/03/24)
-        Member borderMember1 = memberBhv.selectEntityWithDeletedCheck(cb -> {
+        // TODO done kumoshita assertでも使っているのであれば、1,2じゃなくて1974Lastとかデータの意味を変数名に by jflute (2026/03/24)
+        Member borderMember1974Last = memberBhv.selectEntityWithDeletedCheck(cb -> {
             cb.query().setBirthdate_IsNotNull();
             cb.query().addOrderBy_MemberId_Asc();
             cb.fetchFirst(1);
         });
-        borderMember1.setBirthdate(LocalDate.of(1974, 12, 31));
-        memberBhv.updateNonstrict(borderMember1);
+        borderMember1974Last.setBirthdate(LocalDate.of(1974, 12, 31));
+        memberBhv.updateNonstrict(borderMember1974Last);
 
         // 境界テストデータ作成: 1975年1月1日生まれ（検索対象にならないべき）
-        Member borderMember2 = memberBhv.selectEntityWithDeletedCheck(cb -> {
+        Member borderMember1975First = memberBhv.selectEntityWithDeletedCheck(cb -> {
             cb.query().setBirthdate_IsNotNull();
-            cb.query().setMemberId_NotEqual(borderMember1.getMemberId());
+            cb.query().setMemberId_NotEqual(borderMember1974Last.getMemberId());
             cb.query().addOrderBy_MemberId_Asc();
             cb.fetchFirst(1);
         });
-        borderMember2.setBirthdate(LocalDate.of(1975, 1, 1));
-        memberBhv.updateNonstrict(borderMember2);
+        borderMember1975First.setBirthdate(LocalDate.of(1975, 1, 1));
+        memberBhv.updateNonstrict(borderMember1975First);
 
         // ## Act ##
         ListResultBean<Member> memberList = memberBhv.selectList(cb -> {
@@ -411,10 +411,10 @@ public class HandsOn03Test extends UnitContainerTestCase {
         // TODO jflute 次回1on1ここから (2026/03/24)
         assertHasAnyElement(memberList);
         boolean nullsFirst = true;
-        // TODO kumoshita 見つかるはずとか見つからないはずとかの表現はassertに任せて、ここでは単純に... by jflute (2026/03/24)
+        // TODO done kumoshita 見つかるはずとか見つからないはずとかの表現はassertに任せて、ここでは単純に... by jflute (2026/03/24)
         // どっちも見つかったかどうか？で統一的に名前を付けても良いかと。
         boolean foundBorder1974 = false;
-        boolean notFoundBorder1975 = true;
+        boolean foundBorder1975 = false;
         for (Member member : memberList) {
             MemberStatus status = member.getMemberStatus().get();
             MemberSecurity security = member.getMemberSecurityAsOne().get();
@@ -437,15 +437,15 @@ public class HandsOn03Test extends UnitContainerTestCase {
                 assertTrue("生年月日がnullの会員が先頭に来ていません", nullsFirst);
             }
 
-            if (member.getMemberId().equals(borderMember1.getMemberId())) {
+            if (member.getMemberId().equals(borderMember1974Last.getMemberId())) {
                 foundBorder1974 = true;
             }
-            if (member.getMemberId().equals(borderMember2.getMemberId())) {
-                notFoundBorder1975 = false;
+            if (member.getMemberId().equals(borderMember1975First.getMemberId())) {
+                foundBorder1975 = true;
             }
         }
         assertTrue("1974年12月31日生まれの会員が見つかりません", foundBorder1974);
-        assertTrue("1975年1月1日生まれの会員が含まれてはいけません", notFoundBorder1975);
+        assertFalse("1975年1月1日生まれの会員が含まれてはいけません", foundBorder1975);
     }
 
     /**
