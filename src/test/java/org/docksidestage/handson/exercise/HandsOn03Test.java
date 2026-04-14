@@ -3,6 +3,7 @@ package org.docksidestage.handson.exercise;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -495,7 +496,8 @@ public class HandsOn03Test extends UnitContainerTestCase {
 
     /**
      * ページング: 会員を検索（ページサイズ3、1ページ目）
-     * 総レコード数、総ページ数、ページ範囲、ナビゲーションを確認
+     * 会員ステータス名称も取得する
+     * 総レコード数、総ページ数、ページサイズ、ページ番号、ページ範囲、ナビゲーションを確認
      */
     public void test_searchMember_paging() throws Exception {
         // ## Arrange ##
@@ -504,44 +506,81 @@ public class HandsOn03Test extends UnitContainerTestCase {
 
         // ## Act ##
         PagingResultBean<Member> memberPage = memberBhv.selectPage(cb -> {
+            cb.setupSelect_MemberStatus();
             cb.query().addOrderBy_MemberId_Asc();
             cb.paging(pageSize, pageNumber);
         });
 
         // ## Assert ##
         assertHasAnyElement(memberPage);
-        log("総レコード数: {}", memberPage.getAllRecordCount());
-        log("総ページ数: {}", memberPage.getAllPageCount());
-        log("現在のページ件数: {}", memberPage.size());
-        log("前ページあり: {}", memberPage.isExistPrePage());
-        log("次ページあり: {}", memberPage.isExistNextPage());
+
+        // 総レコード数が会員テーブル全件であることを確認
+        int allRecordCount = memberPage.getAllRecordCount();
+        int expectedAllCount = memberBhv.selectCount(cb -> {});
+        log("総レコード数: {}", allRecordCount);
+        assertEquals(expectedAllCount, allRecordCount);
+
+        // 総ページ数が計算値と一致することを確認
+        int allPageCount = memberPage.getAllPageCount();
+        int expectedPageCount = (allRecordCount + pageSize - 1) / pageSize;
+        log("総ページ数: {}", allPageCount);
+        assertEquals(expectedPageCount, allPageCount);
+
+        // ページサイズとページ番号が指定値であることを確認
+        assertEquals(pageSize, memberPage.getPageSize());
+        assertEquals(pageNumber, memberPage.getCurrentPageNumber());
+
+        // 検索結果がページサイズ分のデータのみであることを確認
+        assertEquals(pageSize, memberPage.size());
+
         for (Member member : memberPage) {
-            log("会員ID: {}, 会員名称: {}", member.getMemberId(), member.getMemberName());
+            MemberStatus status = member.getMemberStatus().get();
+            log("会員ID: {}, 会員名称: {}, ステータス: {}", member.getMemberId(), member.getMemberName(), status.getMemberStatusName());
         }
 
+        // PageRangeを3にした際、PageNumberListが[1, 2, 3, 4]であることを確認
+        List<Integer> pageNumberList = memberPage.pageRange(op -> op.rangeSize(3)).createPageNumberList();
+        log("PageNumberList: {}", pageNumberList);
+        assertEquals(Arrays.asList(1, 2, 3, 4), pageNumberList);
+
         // 1ページ目なので前ページはない
-        assertFalse(memberPage.isExistPrePage());
+        assertFalse(memberPage.existsPreviousPage());
         // データが3件より多いなら次ページがある
-        assertTrue(memberPage.isExistNextPage());
-        // ページサイズが3なので、返却件数は3
-        assertEquals(pageSize, memberPage.size());
+        assertTrue(memberPage.existsNextPage());
     }
 
     /**
      * カーソル検索: 会員ステータスの表示順で会員をカーソル検索
+     * 会員ステータスデータも取得する
+     * 会員ステータスの表示順カラム昇順、会員IDの降順で並べる
+     * 会員がステータスごとに固まって並んでいることをアサート
      * 全件をメモリに載せない
      */
     public void test_searchMember_cursor() throws Exception {
         // ## Arrange ##
         AtomicInteger counter = new AtomicInteger(0);
+        // ステータスごとに固まって並んでいることを逐次チェックするための状態（全件リストは持たない）
+        Set<String> finishedStatusCodes = new HashSet<>();
+        String[] previousStatusCode = { null }; // コールバック内で更新するため配列
 
         // ## Act ##
         memberBhv.selectCursor(cb -> {
+            cb.setupSelect_MemberStatus();
             cb.query().queryMemberStatus().addOrderBy_DisplayOrder_Asc();
-            cb.query().addOrderBy_MemberId_Asc();
+            cb.query().addOrderBy_MemberId_Desc();
         }, member -> {
             counter.incrementAndGet();
-            log("会員名称: {}, ステータスコード: {}", member.getMemberName(), member.getMemberStatusCode());
+            MemberStatus status = member.getMemberStatus().get();
+            assertNotNull(status);
+            log("会員名称: {}, ステータス: {}", member.getMemberName(), status.getMemberStatusName());
+
+            // 会員がステータスごとに固まって並んでいることをアサート
+            String currentCode = member.getMemberStatusCode();
+            if (previousStatusCode[0] != null && !previousStatusCode[0].equals(currentCode)) {
+                assertFalse("ステータスが固まって並んでいません: " + currentCode, finishedStatusCodes.contains(currentCode));
+                finishedStatusCodes.add(previousStatusCode[0]);
+            }
+            previousStatusCode[0] = currentCode;
         });
 
         // ## Assert ##
