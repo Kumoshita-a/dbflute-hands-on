@@ -587,4 +587,40 @@ public class HandsOn03Test extends UnitContainerTestCase {
         log("処理件数: {}", counter.get());
         assertTrue(counter.get() > 0);
     }
+
+    // ===================================================================================
+    //                                                          InnerJoinAutoDetect
+    //                                                          ====================
+    /**
+     * InnerJoinAutoDetect機能の確認
+     * test_searchMember_securityReminderContains2 のケースを利用して確認
+     */
+    public void test_innerJoinAutoDetect() throws Exception {
+        // ## Arrange & Act ##
+        // デフォルト（InnerJoinAutoDetect有効）: 相手テーブルの条件指定でINNER JOINになる
+        ListResultBean<Member> memberListDefault = memberBhv.selectList(cb -> {
+            cb.query().queryMemberSecurityAsOne().setReminderQuestion_LikeSearch("2", op -> op.likeContain());
+            log("=== InnerJoinAutoDetect 有効(デフォルト) ===");
+            log(cb.toDisplaySql());
+        });
+
+        // InnerJoinAutoDetect無効化: LEFT OUTER JOINのままになる
+        ListResultBean<Member> memberListDisabled = memberBhv.selectList(cb -> {
+            cb.disableInnerJoinAutoDetect();
+            cb.query().queryMemberSecurityAsOne().setReminderQuestion_LikeSearch("2", op -> op.likeContain());
+            log("=== InnerJoinAutoDetect 無効 ===");
+            log(cb.toDisplaySql());
+        });
+
+        // ## Assert ##
+        // どちらも結果は同じになるはず
+        // LEFT　OUTER JOINだとmemberを全件（20件）とるが、INER JOINだとmember_securityに条件が合うものだけ（3件）をとるのでパフォーマンス改善につながる
+        assertHasAnyElement(memberListDefault);
+        assertHasAnyElement(memberListDisabled);
+        assertEquals(memberListDefault.size(), memberListDisabled.size());
+        for (int i = 0; i < memberListDefault.size(); i++) {
+            assertEquals(memberListDefault.get(i).getMemberId(), memberListDisabled.get(i).getMemberId());
+        }
+        log("検索結果件数: {}", memberListDefault.size());
+    }
 }
