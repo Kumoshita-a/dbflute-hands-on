@@ -81,6 +81,8 @@ public class HandsOn04Test extends UnitContainerTestCase {
         });
 
         // ## Assert ##
+        // #1on1: 反対の事象もアサートしないと成り立たないっての最初から実装できてるの素晴らしい (2026/04/28)
+        // ここぞってところ紛れのgreenに絶対にならないように。
         assertHasAnyElement(memberList);
         boolean foundWithdrawal = false;
         boolean foundNonWithdrawal = false;
@@ -115,8 +117,16 @@ public class HandsOn04Test extends UnitContainerTestCase {
         Member member = memberBhv.selectEntity(cb -> {
             cb.setupSelect_MemberStatus();
             cb.query().setMemberStatusCode_Equal_仮会員();
+            // #1on1: もし同率首位を取るとなったら、ここでもScalarCondition。 (2026/04/28)
+            //cb.query().scalar_Equal().max(memberCB -> {
+            //    memberCB.specify().columnBirthdate();
+            //    memberCB.query().setMemberStatusCode_Equal_仮会員();
+            //});
             cb.query().setBirthdate_IsNotNull();
             cb.query().addOrderBy_Birthdate_Desc();
+            // #1on1: かぶる可能性があるので1件を保証してるのGood (2026/04/28)
+            // 何が取れるのか？の保証は厳密にない。DBMSの実装に寄る。(ランダムって思ってた方が良い)
+            // (実際には、MySQLとかだとinsert順が影響すること多いけど、そこに頼っちゃダメ)
             cb.fetchFirst(1);
         }).get();
 
@@ -133,6 +143,7 @@ public class HandsOn04Test extends UnitContainerTestCase {
         // ## Arrange ##
 
         // ## Act ##
+        // #1on1: 外側と内側で同じ条件入れないと辻褄合わない部分うまくできててGood (2026/04/28)
         ListResultBean<Purchase> purchaseList = purchaseBhv.selectList(cb -> {
             cb.setupSelect_Member().withMemberStatus();
             cb.query().setPaymentCompleteFlg_Equal_True();
@@ -140,7 +151,17 @@ public class HandsOn04Test extends UnitContainerTestCase {
             cb.query().queryMember().scalar_Equal().max(memberCB -> {
                 memberCB.specify().columnBirthdate();
                 memberCB.query().setMemberStatusCode_Equal_正式会員();
+                // TODO kumoshita 慣習として、pCB ではなく、purchaseCB (テーブルのキーワード) by jflute (2026/04/28)
+                // TODO kumoshita 慣習として、関連テーブルのLambdaは、blockスタイルのLambdaで by jflute (2026/04/28)
                 memberCB.query().existsPurchase(pCB -> pCB.query().setPaymentCompleteFlg_Equal_True());
+                // #1on1: こういうの考える時は、コードで考えるのではなく、図とか表とか (2026/04/28)
+                // (手元の紙で考えたということでGood)
+                // // ホワイトボードを買ってこよう
+                // https://jflute.hatenadiary.jp/entry/20110607/1307440686
+                // 人って、書いてるプロセスをみてる方が理解しやすい by くもしたさん
+                // 思考のプロセスがそのまま見えるのかも by くぼ
+                // ライブコーディングにもつながるかも by くぼ
+                // 自分で書いたことないのにAIのコードひたすら読む辛い話にもつながるかも by くぼ
             });
             cb.query().addOrderBy_PurchaseDatetime_Desc();
         });
@@ -198,6 +219,15 @@ public class HandsOn04Test extends UnitContainerTestCase {
         // ## Act ##
         ListResultBean<Member> memberList = memberBhv.selectList(cb -> {
             cb.setupSelect_MemberStatus();
+            // #1on1: 一応紹介でorScopeQuery()を使った例、でもInScopeの方がベター (目的が絞られてる) (2026/04/28)
+            // 目的が絞られてると、実行計画とかで良い方を選んでくれる確率が高くなる。
+            // (このケースそんな変わらないけど、そういう発想を持っていて欲しい)
+            // orScopeQueryの方が汎用的、InScopeの方が狭まっている。
+            // フィットするなら狭まっている方を使う方が意図が伝わりやすい。
+            //cb.orScopeQuery(orCB -> {
+            //    orCB.query().setMemberStatusCode_Equal_正式会員();
+            //    orCB.query().setMemberStatusCode_Equal_退会会員();
+            //});
             cb.query().setMemberStatusCode_InScope_AsMemberStatus(
                     Arrays.asList(CDef.MemberStatus.正式会員, CDef.MemberStatus.退会会員));
             cb.query().queryMemberStatus().addOrderBy_DisplayOrder_Asc();
@@ -233,8 +263,20 @@ public class HandsOn04Test extends UnitContainerTestCase {
         // DB 上は変更されていないこと
         Member fromDb = memberBhv.selectByPK(targetId).get();
         assertTrue(fromDb.isMemberStatusCode正式会員());
+        
+        // #1on1: DBFluteは、あくまで bhv で update とかやらない限り、DBは更新しない。 (2026/04/28)
+        // どんだけ Entity をいじっても、それはJavaのメモリ上の変数を変えているだけ。
+        // 世の中には、Entityの値を変更したら、DBも変更されるツールもある。
+        //
+        // DBFluteは、どこまで機能が豊富だとしても、RDBを意識したラッパーであることは変わらない。
+        // 他のO/Rマッパーは、RDBを隠蔽して、あたかもODBにアクセスしているかのような実装をコンセプトにするものもある。
+        
+        // #1on1: LazyLoadのお話も (2026/04/28)
+        // DBFluteは、LazyLoadはしない。(意図的にやらないようにしている。要望があっても断ってる)
+        // LazyLoadは、n+1問題を発生させやすい機能である。
     }
 
+    // TODO jflute 次回1on1, ArrangeQueryのお話 (2026/04/28)
     /**
      * 銀行振込で購入を支払ったことのある、会員ステータスごとに一番若い会員を検索
      */
