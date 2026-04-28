@@ -9,6 +9,7 @@ import org.dbflute.dbmeta.AbstractEntity;
 import org.dbflute.dbmeta.accessory.DomainEntity;
 import org.dbflute.optional.OptionalEntity;
 import org.docksidestage.handson.dbflute.allcommon.DBMetaInstanceHandler;
+import org.docksidestage.handson.dbflute.allcommon.CDef;
 import org.docksidestage.handson.dbflute.exentity.*;
 
 /**
@@ -46,7 +47,7 @@ public abstract class BsPurchase extends AbstractEntity implements DomainEntity 
     /** PURCHASE_PRICE: {IX, NotNull, INT(10)} */
     protected Integer _purchasePrice;
 
-    /** PAYMENT_COMPLETE_FLG: {NotNull, INT(10)} */
+    /** PAYMENT_COMPLETE_FLG: {NotNull, INT(10), classification=Flg} */
     protected Integer _paymentCompleteFlg;
 
     /** REGISTER_DATETIME: {NotNull, DATETIME(19)} */
@@ -99,6 +100,95 @@ public abstract class BsPurchase extends AbstractEntity implements DomainEntity 
         __uniqueDrivenProperties.addPropertyName("productId");
         __uniqueDrivenProperties.addPropertyName("purchaseDatetime");
         setMemberId(memberId);setProductId(productId);setPurchaseDatetime(purchaseDatetime);
+    }
+
+    // ===================================================================================
+    //                                                             Classification Property
+    //                                                             =======================
+    /**
+     * Get the value of paymentCompleteFlg as the classification of Flg. <br>
+     * PAYMENT_COMPLETE_FLG: {NotNull, INT(10), classification=Flg} <br>
+     * フラグを示す
+     * <p>It's treated as case insensitive and if the code value is null, it returns null.</p>
+     * @return The instance of classification definition (as ENUM type). (NullAllowed: when the column value is null)
+     */
+    public CDef.Flg getPaymentCompleteFlgAsFlg() {
+        return CDef.Flg.of(getPaymentCompleteFlg()).orElse(null);
+    }
+
+    /**
+     * Set the value of paymentCompleteFlg as the classification of Flg. <br>
+     * PAYMENT_COMPLETE_FLG: {NotNull, INT(10), classification=Flg} <br>
+     * フラグを示す
+     * @param cdef The instance of classification definition (as ENUM type). (NullAllowed: if null, null value is set to the column)
+     */
+    public void setPaymentCompleteFlgAsFlg(CDef.Flg cdef) {
+        setPaymentCompleteFlg(cdef != null ? toNumber(cdef.code(), Integer.class) : null);
+    }
+
+    // ===================================================================================
+    //                                                              Classification Setting
+    //                                                              ======================
+    /**
+     * Set the value of paymentCompleteFlg as True (1). <br>
+     * はい: 有効を示す
+     */
+    public void setPaymentCompleteFlg_True() {
+        setPaymentCompleteFlgAsFlg(CDef.Flg.True);
+    }
+
+    /**
+     * Set the value of paymentCompleteFlg as False (0). <br>
+     * いいえ: 無効を示す
+     */
+    public void setPaymentCompleteFlg_False() {
+        setPaymentCompleteFlgAsFlg(CDef.Flg.False);
+    }
+
+    // ===================================================================================
+    //                                                        Classification Determination
+    //                                                        ============================
+    /**
+     * Is the value of paymentCompleteFlg True? <br>
+     * はい: 有効を示す
+     * <p>It's treated as case insensitive and if the code value is null, it returns false.</p>
+     * @return The determination, true or false.
+     */
+    public boolean isPaymentCompleteFlgTrue() {
+        CDef.Flg cdef = getPaymentCompleteFlgAsFlg();
+        return cdef != null ? cdef.equals(CDef.Flg.True) : false;
+    }
+
+    /**
+     * Is the value of paymentCompleteFlg False? <br>
+     * いいえ: 無効を示す
+     * <p>It's treated as case insensitive and if the code value is null, it returns false.</p>
+     * @return The determination, true or false.
+     */
+    public boolean isPaymentCompleteFlgFalse() {
+        CDef.Flg cdef = getPaymentCompleteFlgAsFlg();
+        return cdef != null ? cdef.equals(CDef.Flg.False) : false;
+    }
+
+    // ===================================================================================
+    //                                                           Classification Name/Alias
+    //                                                           =========================
+    /**
+     * Get the value of the column 'paymentCompleteFlg' as classification name.
+     * @return The string of classification name. (NullAllowed: when the column value is null)
+     */
+    public String getPaymentCompleteFlgName() {
+        CDef.Flg cdef = getPaymentCompleteFlgAsFlg();
+        return cdef != null ? cdef.name() : null;
+    }
+
+    /**
+     * Get the value of the column 'paymentCompleteFlg' as classification alias.
+     * @return The string of classification alias. (NullAllowed: when the column value is null)
+     */
+    public String getPaymentCompleteFlgAlias() {
+        CDef.Flg cdef = getPaymentCompleteFlgAsFlg();
+        return cdef != null ? cdef.alias() : null;
     }
 
     // ===================================================================================
@@ -382,7 +472,7 @@ public abstract class BsPurchase extends AbstractEntity implements DomainEntity 
     }
 
     /**
-     * [get] PAYMENT_COMPLETE_FLG: {NotNull, INT(10)} <br>
+     * [get] PAYMENT_COMPLETE_FLG: {NotNull, INT(10), classification=Flg} <br>
      * 支払完了フラグ: この購入に関しての支払いが完了しているか否か。
      * @return The value of the column 'PAYMENT_COMPLETE_FLG'. (basically NotNull if selected: for the constraint)
      */
@@ -392,11 +482,12 @@ public abstract class BsPurchase extends AbstractEntity implements DomainEntity 
     }
 
     /**
-     * [set] PAYMENT_COMPLETE_FLG: {NotNull, INT(10)} <br>
+     * [set] PAYMENT_COMPLETE_FLG: {NotNull, INT(10), classification=Flg} <br>
      * 支払完了フラグ: この購入に関しての支払いが完了しているか否か。
      * @param paymentCompleteFlg The value of the column 'PAYMENT_COMPLETE_FLG'. (basically NotNull if update: for the constraint)
      */
-    public void setPaymentCompleteFlg(Integer paymentCompleteFlg) {
+    protected void setPaymentCompleteFlg(Integer paymentCompleteFlg) {
+        checkClassificationCode("PAYMENT_COMPLETE_FLG", CDef.DefMeta.Flg, paymentCompleteFlg);
         registerModifiedProperty("paymentCompleteFlg");
         _paymentCompleteFlg = paymentCompleteFlg;
     }
@@ -489,5 +580,13 @@ public abstract class BsPurchase extends AbstractEntity implements DomainEntity 
     public void setVersionNo(Long versionNo) {
         registerModifiedProperty("versionNo");
         _versionNo = versionNo;
+    }
+
+    /**
+     * For framework so basically DON'T use this method.
+     * @param paymentCompleteFlg The value of the column 'PAYMENT_COMPLETE_FLG'. (basically NotNull if update: for the constraint)
+     */
+    public void mynativeMappingPaymentCompleteFlg(Integer paymentCompleteFlg) {
+        setPaymentCompleteFlg(paymentCompleteFlg);
     }
 }

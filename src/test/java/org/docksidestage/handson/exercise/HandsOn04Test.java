@@ -3,6 +3,7 @@ package org.docksidestage.handson.exercise;
 import javax.annotation.Resource;
 
 import org.dbflute.cbean.result.ListResultBean;
+import org.docksidestage.handson.dbflute.allcommon.CDef;
 import org.docksidestage.handson.dbflute.exbhv.MemberBhv;
 import org.docksidestage.handson.dbflute.exbhv.PurchaseBhv;
 import org.docksidestage.handson.dbflute.exentity.Member;
@@ -40,8 +41,8 @@ public class HandsOn04Test extends UnitContainerTestCase {
         ListResultBean<Purchase> purchaseList = purchaseBhv.selectList(cb -> {
             cb.setupSelect_Member();
             cb.setupSelect_Product();
-            cb.query().queryMember().setMemberStatusCode_Equal("WDL");
-            cb.query().setPaymentCompleteFlg_Equal(0);
+            cb.query().queryMember().setMemberStatusCode_Equal_退会会員();
+            cb.query().setPaymentCompleteFlg_Equal_False();
             cb.query().addOrderBy_PurchaseDatetime_Desc();
         });
 
@@ -51,7 +52,7 @@ public class HandsOn04Test extends UnitContainerTestCase {
             Member member = purchase.getMember().get();
             Product product = purchase.getProduct().get();
             log("会員名称: {}, 商品名: {}, 購入日時: {}", member.getMemberName(), product.getProductName(), purchase.getPurchaseDatetime());
-            assertEquals(Integer.valueOf(0), purchase.getPaymentCompleteFlg());
+            assertEquals(CDef.Flg.False, purchase.getPaymentCompleteFlgAsFlg());
         }
     }
 
@@ -77,7 +78,7 @@ public class HandsOn04Test extends UnitContainerTestCase {
         boolean foundWithdrawal = false;
         boolean foundNonWithdrawal = false;
         for (Member member : memberList) {
-            boolean isWithdrawal = "WDL".equals(member.getMemberStatusCode());
+            boolean isWithdrawal = member.isMemberStatusCode退会会員();
             boolean hasWithdrawal = member.getMemberWithdrawalAsOne().isPresent();
             log("会員名称: {}, ステータスコード: {}, 退会情報: {}", member.getMemberName(), member.getMemberStatusCode(),
                     hasWithdrawal ? "あり" : "なし");

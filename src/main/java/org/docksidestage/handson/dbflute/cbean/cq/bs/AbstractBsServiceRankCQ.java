@@ -517,11 +517,37 @@ public abstract class AbstractBsServiceRankCQ extends AbstractConditionQuery {
 
     /**
      * Equal(=). And NullIgnored, OnlyOnceRegistered. <br>
-     * NEW_ACCEPTABLE_FLG: {NotNull, INT(10)}
+     * NEW_ACCEPTABLE_FLG: {NotNull, INT(10), classification=Flg}
      * @param newAcceptableFlg The value of newAcceptableFlg as equal. (basically NotNull: error as default, or no condition as option)
      */
-    public void setNewAcceptableFlg_Equal(Integer newAcceptableFlg) {
+    protected void setNewAcceptableFlg_Equal(Integer newAcceptableFlg) {
         doSetNewAcceptableFlg_Equal(newAcceptableFlg);
+    }
+
+    /**
+     * Equal(=). As Flg. And NullIgnored, OnlyOnceRegistered. <br>
+     * NEW_ACCEPTABLE_FLG: {NotNull, INT(10), classification=Flg} <br>
+     * フラグを示す
+     * @param cdef The instance of classification definition (as ENUM type). (basically NotNull: error as default, or no condition as option)
+     */
+    public void setNewAcceptableFlg_Equal_AsFlg(CDef.Flg cdef) {
+        doSetNewAcceptableFlg_Equal(cTNum(cdef != null ? cdef.code() : null, Integer.class));
+    }
+
+    /**
+     * Equal(=). As True (1). And NullIgnored, OnlyOnceRegistered. <br>
+     * はい: 有効を示す
+     */
+    public void setNewAcceptableFlg_Equal_True() {
+        setNewAcceptableFlg_Equal_AsFlg(CDef.Flg.True);
+    }
+
+    /**
+     * Equal(=). As False (0). And NullIgnored, OnlyOnceRegistered. <br>
+     * いいえ: 無効を示す
+     */
+    public void setNewAcceptableFlg_Equal_False() {
+        setNewAcceptableFlg_Equal_AsFlg(CDef.Flg.False);
     }
 
     protected void doSetNewAcceptableFlg_Equal(Integer newAcceptableFlg) {
@@ -530,11 +556,37 @@ public abstract class AbstractBsServiceRankCQ extends AbstractConditionQuery {
 
     /**
      * NotEqual(&lt;&gt;). And NullIgnored, OnlyOnceRegistered. <br>
-     * NEW_ACCEPTABLE_FLG: {NotNull, INT(10)}
+     * NEW_ACCEPTABLE_FLG: {NotNull, INT(10), classification=Flg}
      * @param newAcceptableFlg The value of newAcceptableFlg as notEqual. (basically NotNull: error as default, or no condition as option)
      */
-    public void setNewAcceptableFlg_NotEqual(Integer newAcceptableFlg) {
+    protected void setNewAcceptableFlg_NotEqual(Integer newAcceptableFlg) {
         doSetNewAcceptableFlg_NotEqual(newAcceptableFlg);
+    }
+
+    /**
+     * NotEqual(&lt;&gt;). As Flg. And NullIgnored, OnlyOnceRegistered. <br>
+     * NEW_ACCEPTABLE_FLG: {NotNull, INT(10), classification=Flg} <br>
+     * フラグを示す
+     * @param cdef The instance of classification definition (as ENUM type). (basically NotNull: error as default, or no condition as option)
+     */
+    public void setNewAcceptableFlg_NotEqual_AsFlg(CDef.Flg cdef) {
+        doSetNewAcceptableFlg_NotEqual(cTNum(cdef != null ? cdef.code() : null, Integer.class));
+    }
+
+    /**
+     * NotEqual(&lt;&gt;). As True (1). And NullIgnored, OnlyOnceRegistered. <br>
+     * はい: 有効を示す
+     */
+    public void setNewAcceptableFlg_NotEqual_True() {
+        setNewAcceptableFlg_NotEqual_AsFlg(CDef.Flg.True);
+    }
+
+    /**
+     * NotEqual(&lt;&gt;). As False (0). And NullIgnored, OnlyOnceRegistered. <br>
+     * いいえ: 無効を示す
+     */
+    public void setNewAcceptableFlg_NotEqual_False() {
+        setNewAcceptableFlg_NotEqual_AsFlg(CDef.Flg.False);
     }
 
     protected void doSetNewAcceptableFlg_NotEqual(Integer newAcceptableFlg) {
@@ -542,74 +594,22 @@ public abstract class AbstractBsServiceRankCQ extends AbstractConditionQuery {
     }
 
     /**
-     * GreaterThan(&gt;). And NullIgnored, OnlyOnceRegistered. <br>
-     * NEW_ACCEPTABLE_FLG: {NotNull, INT(10)}
-     * @param newAcceptableFlg The value of newAcceptableFlg as greaterThan. (basically NotNull: error as default, or no condition as option)
-     */
-    public void setNewAcceptableFlg_GreaterThan(Integer newAcceptableFlg) {
-        regNewAcceptableFlg(CK_GT, newAcceptableFlg);
-    }
-
-    /**
-     * LessThan(&lt;). And NullIgnored, OnlyOnceRegistered. <br>
-     * NEW_ACCEPTABLE_FLG: {NotNull, INT(10)}
-     * @param newAcceptableFlg The value of newAcceptableFlg as lessThan. (basically NotNull: error as default, or no condition as option)
-     */
-    public void setNewAcceptableFlg_LessThan(Integer newAcceptableFlg) {
-        regNewAcceptableFlg(CK_LT, newAcceptableFlg);
-    }
-
-    /**
-     * GreaterEqual(&gt;=). And NullIgnored, OnlyOnceRegistered. <br>
-     * NEW_ACCEPTABLE_FLG: {NotNull, INT(10)}
-     * @param newAcceptableFlg The value of newAcceptableFlg as greaterEqual. (basically NotNull: error as default, or no condition as option)
-     */
-    public void setNewAcceptableFlg_GreaterEqual(Integer newAcceptableFlg) {
-        regNewAcceptableFlg(CK_GE, newAcceptableFlg);
-    }
-
-    /**
-     * LessEqual(&lt;=). And NullIgnored, OnlyOnceRegistered. <br>
-     * NEW_ACCEPTABLE_FLG: {NotNull, INT(10)}
-     * @param newAcceptableFlg The value of newAcceptableFlg as lessEqual. (basically NotNull: error as default, or no condition as option)
-     */
-    public void setNewAcceptableFlg_LessEqual(Integer newAcceptableFlg) {
-        regNewAcceptableFlg(CK_LE, newAcceptableFlg);
-    }
-
-    /**
-     * RangeOf with various options. (versatile) <br>
-     * {(default) minNumber &lt;= column &lt;= maxNumber} <br>
-     * And NullIgnored, OnlyOnceRegistered. <br>
-     * NEW_ACCEPTABLE_FLG: {NotNull, INT(10)}
-     * @param minNumber The min number of newAcceptableFlg. (basically NotNull: if op.allowOneSide(), null allowed)
-     * @param maxNumber The max number of newAcceptableFlg. (basically NotNull: if op.allowOneSide(), null allowed)
-     * @param opLambda The callback for option of range-of. (NotNull)
-     */
-    public void setNewAcceptableFlg_RangeOf(Integer minNumber, Integer maxNumber, ConditionOptionCall<RangeOfOption> opLambda) {
-        setNewAcceptableFlg_RangeOf(minNumber, maxNumber, xcROOP(opLambda));
-    }
-
-    /**
-     * RangeOf with various options. (versatile) <br>
-     * {(default) minNumber &lt;= column &lt;= maxNumber} <br>
-     * And NullIgnored, OnlyOnceRegistered. <br>
-     * NEW_ACCEPTABLE_FLG: {NotNull, INT(10)}
-     * @param minNumber The min number of newAcceptableFlg. (basically NotNull: if op.allowOneSide(), null allowed)
-     * @param maxNumber The max number of newAcceptableFlg. (basically NotNull: if op.allowOneSide(), null allowed)
-     * @param rangeOfOption The option of range-of. (NotNull)
-     */
-    protected void setNewAcceptableFlg_RangeOf(Integer minNumber, Integer maxNumber, RangeOfOption rangeOfOption) {
-        regROO(minNumber, maxNumber, xgetCValueNewAcceptableFlg(), "NEW_ACCEPTABLE_FLG", rangeOfOption);
-    }
-
-    /**
      * InScope {in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br>
-     * NEW_ACCEPTABLE_FLG: {NotNull, INT(10)}
+     * NEW_ACCEPTABLE_FLG: {NotNull, INT(10), classification=Flg}
      * @param newAcceptableFlgList The collection of newAcceptableFlg as inScope. (basically NotNull, NotEmpty: error as default, or no condition as option)
      */
-    public void setNewAcceptableFlg_InScope(Collection<Integer> newAcceptableFlgList) {
+    protected void setNewAcceptableFlg_InScope(Collection<Integer> newAcceptableFlgList) {
         doSetNewAcceptableFlg_InScope(newAcceptableFlgList);
+    }
+
+    /**
+     * InScope {in (1, 2)}. As Flg. And NullIgnored, NullElementIgnored, SeveralRegistered. <br>
+     * NEW_ACCEPTABLE_FLG: {NotNull, INT(10), classification=Flg} <br>
+     * フラグを示す
+     * @param cdefList The list of classification definition (as ENUM type). (basically NotNull, NotEmpty: error as default, or no condition as option)
+     */
+    public void setNewAcceptableFlg_InScope_AsFlg(Collection<CDef.Flg> cdefList) {
+        doSetNewAcceptableFlg_InScope(cTNumL(cdefList, Integer.class));
     }
 
     protected void doSetNewAcceptableFlg_InScope(Collection<Integer> newAcceptableFlgList) {
@@ -618,11 +618,21 @@ public abstract class AbstractBsServiceRankCQ extends AbstractConditionQuery {
 
     /**
      * NotInScope {not in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br>
-     * NEW_ACCEPTABLE_FLG: {NotNull, INT(10)}
+     * NEW_ACCEPTABLE_FLG: {NotNull, INT(10), classification=Flg}
      * @param newAcceptableFlgList The collection of newAcceptableFlg as notInScope. (basically NotNull, NotEmpty: error as default, or no condition as option)
      */
-    public void setNewAcceptableFlg_NotInScope(Collection<Integer> newAcceptableFlgList) {
+    protected void setNewAcceptableFlg_NotInScope(Collection<Integer> newAcceptableFlgList) {
         doSetNewAcceptableFlg_NotInScope(newAcceptableFlgList);
+    }
+
+    /**
+     * NotInScope {not in (1, 2)}. As Flg. And NullIgnored, NullElementIgnored, SeveralRegistered. <br>
+     * NEW_ACCEPTABLE_FLG: {NotNull, INT(10), classification=Flg} <br>
+     * フラグを示す
+     * @param cdefList The list of classification definition (as ENUM type). (basically NotNull, NotEmpty: error as default, or no condition as option)
+     */
+    public void setNewAcceptableFlg_NotInScope_AsFlg(Collection<CDef.Flg> cdefList) {
+        doSetNewAcceptableFlg_NotInScope(cTNumL(cdefList, Integer.class));
     }
 
     protected void doSetNewAcceptableFlg_NotInScope(Collection<Integer> newAcceptableFlgList) {

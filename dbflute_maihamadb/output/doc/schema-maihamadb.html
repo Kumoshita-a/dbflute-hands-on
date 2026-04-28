@@ -440,6 +440,9 @@ pre.spolicyviodisp {
 <h1>Schema for maihamadb (mysql)</h1>
 <p class="mainschema">generated from <strong>maihamadb</strong></p>
 <div class="navilinkarea">
+<p class="sublink">
+ <a href="#cdef">Classification Definition</a>
+</p>
 <p class="sisterlink"><a href="./history-maihamadb.html">to HistoryHTML</a></p>
 </div>
 
@@ -770,7 +773,7 @@ member
 		<td class="sizecell"> 3 </td>
 		<td class="relcell"><a href="#member_status" title="FK_MEMBER_MEMBER_STATUS">member_status</a>&nbsp;</td>
 		<td class="relcell">&nbsp;</td>
-		<td class="relcell"> &nbsp;</td>
+		<td class="relcell"><a href="#MemberStatusCls">MemberStatus</a></td>
 		<td class="commentcell"><pre>会員ステータスコード</pre></td>
 		<td class="subcell">memberStatusCode</td>
 		<td class="subcell">String</td>
@@ -1237,7 +1240,7 @@ member_login
 		<td class="sizecell"> 10 </td>
 		<td class="relcell">&nbsp;&nbsp;</td>
 		<td class="relcell">&nbsp;</td>
-		<td class="relcell"> &nbsp;</td>
+		<td class="relcell"><a href="#FlgCls">Flg</a></td>
 		<td class="commentcell"><pre>モバイルログインフラグ: モバイル機器からのログインか否か。</pre></td>
 		<td class="subcell">mobileLoginFlg</td>
 		<td class="subcell">Integer</td>
@@ -1255,7 +1258,7 @@ member_login
 		<td class="sizecell"> 3 </td>
 		<td class="relcell"><a href="#member_status" title="FK_MEMBER_LOGIN_MEMBER_STATUS">member_status</a>&nbsp;</td>
 		<td class="relcell">&nbsp;</td>
-		<td class="relcell"> &nbsp;</td>
+		<td class="relcell"><a href="#MemberStatusCls">MemberStatus</a></td>
 		<td class="commentcell"><pre>ログイン会員ステータスコード: ログイン時の会員ステータス</pre></td>
 		<td class="subcell">loginMemberStatusCode</td>
 		<td class="subcell">String</td>
@@ -1675,7 +1678,7 @@ member_status
 		<td class="sizecell"> 3 </td>
 		<td class="relcell">&nbsp;&nbsp;</td>
 		<td class="relcell"><a href="#member" title="FK_MEMBER_MEMBER_STATUS">member</a>,<br><a href="#member_login" title="FK_MEMBER_LOGIN_MEMBER_STATUS">member_login</a>&nbsp;</td>
-		<td class="relcell"> &nbsp;</td>
+		<td class="relcell"><a href="#MemberStatusCls">MemberStatus</a></td>
 		<td class="commentcell"><pre>会員ステータスコード: 会員ステータスを識別するコード。</pre></td>
 		<td class="subcell">memberStatusCode</td>
 		<td class="subcell">String</td>
@@ -2453,7 +2456,7 @@ purchase
 		<td class="sizecell"> 10 </td>
 		<td class="relcell">&nbsp;&nbsp;</td>
 		<td class="relcell">&nbsp;</td>
-		<td class="relcell"> &nbsp;</td>
+		<td class="relcell"><a href="#FlgCls">Flg</a></td>
 		<td class="commentcell"><pre>支払完了フラグ: この購入に関しての支払いが完了しているか否か。</pre></td>
 		<td class="subcell">paymentCompleteFlg</td>
 		<td class="subcell">Integer</td>
@@ -2911,7 +2914,7 @@ service_rank
 		<td class="sizecell"> 10 </td>
 		<td class="relcell">&nbsp;&nbsp;</td>
 		<td class="relcell">&nbsp;</td>
-		<td class="relcell"> &nbsp;</td>
+		<td class="relcell"><a href="#FlgCls">Flg</a></td>
 		<td class="commentcell"><pre>新規受け入れ可能フラグ: このランクへの新規受け入れができるかどうか。</pre></td>
 		<td class="subcell">newAcceptableFlg</td>
 		<td class="subcell">Integer</td>
@@ -3043,6 +3046,75 @@ withdrawal_reason
 </table>
 
 
+<h2 id="cdef">Classification Definition</h2>
+<table>
+	<thead>
+	<tr>
+		<th>Classification</th>
+		<th>Type</th>
+		<th>Top Comment</th>
+		<th>Definition</th>
+	</tr>
+	</thead>
+	<tbody>
+	<tr>
+		<td>Flg</td>
+		<td class="clstypecell"> implicit</td>
+		<td>フラグを示す</td>
+		<td>
+			<table class="child">
+			<tr>
+				<th id="FlgCls">Code</th>
+				<th>Name</th>
+				<th>Alias</th>
+				<th>Comment</th>
+			</tr>
+			<tr>
+				<td>1</td>
+				<td>True</td>
+				<td>はい</td>
+				<td class="commentcell">有効を示す</td>
+			</tr>
+			<tr>
+				<td>0</td>
+				<td>False</td>
+				<td>いいえ</td>
+				<td class="commentcell">無効を示す</td>
+			</tr>
+			</table>
+		</td>
+	</tr>
+	<tr>
+		<td>MemberStatus</td>
+		<td class="clstypecell">table</td>
+		<td>入会から退会までの会員のステータスを示す</td>
+		<td>
+			<table class="child">
+			<tr>
+				<th id="MemberStatusCls">Code</th>
+				<th>Name</th>
+				<th>Comment</th>
+			</tr>
+			<tr>
+				<td>FML</td>
+				<td>正式会員</td>
+				<td class="commentcell">正式な会員としてサイトサービスが利用可能</td>
+			</tr>
+			<tr>
+				<td>WDL</td>
+				<td>退会会員</td>
+				<td class="commentcell">退会が確定した会員でサイトサービスはダメ</td>
+			</tr>
+			<tr>
+				<td>PRV</td>
+				<td>仮会員</td>
+				<td class="commentcell">入会直後のステータスで一部のサイトサービスが利用可能</td>
+			</tr>
+			</table>
+		</td>
+	</tr>
+	</tbody>
+</table>
 
 
 <h2 id="thanks">Thanks</h2>

@@ -20,6 +20,6 @@
 # *The line that starts with '#' means comment-out.
 #
 map:{
-    #; $$ALL$$       = map:{suffix:_FLG=Flg}
+    ; $$ALL$$ = map:{suffix:_FLG=Flg}
 }
 # ----------------/

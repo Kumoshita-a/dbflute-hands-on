@@ -366,11 +366,37 @@ public abstract class AbstractBsMemberLoginCQ extends AbstractConditionQuery {
 
     /**
      * Equal(=). And NullIgnored, OnlyOnceRegistered. <br>
-     * MOBILE_LOGIN_FLG: {NotNull, INT(10)}
+     * MOBILE_LOGIN_FLG: {NotNull, INT(10), classification=Flg}
      * @param mobileLoginFlg The value of mobileLoginFlg as equal. (basically NotNull: error as default, or no condition as option)
      */
-    public void setMobileLoginFlg_Equal(Integer mobileLoginFlg) {
+    protected void setMobileLoginFlg_Equal(Integer mobileLoginFlg) {
         doSetMobileLoginFlg_Equal(mobileLoginFlg);
+    }
+
+    /**
+     * Equal(=). As Flg. And NullIgnored, OnlyOnceRegistered. <br>
+     * MOBILE_LOGIN_FLG: {NotNull, INT(10), classification=Flg} <br>
+     * フラグを示す
+     * @param cdef The instance of classification definition (as ENUM type). (basically NotNull: error as default, or no condition as option)
+     */
+    public void setMobileLoginFlg_Equal_AsFlg(CDef.Flg cdef) {
+        doSetMobileLoginFlg_Equal(cTNum(cdef != null ? cdef.code() : null, Integer.class));
+    }
+
+    /**
+     * Equal(=). As True (1). And NullIgnored, OnlyOnceRegistered. <br>
+     * はい: 有効を示す
+     */
+    public void setMobileLoginFlg_Equal_True() {
+        setMobileLoginFlg_Equal_AsFlg(CDef.Flg.True);
+    }
+
+    /**
+     * Equal(=). As False (0). And NullIgnored, OnlyOnceRegistered. <br>
+     * いいえ: 無効を示す
+     */
+    public void setMobileLoginFlg_Equal_False() {
+        setMobileLoginFlg_Equal_AsFlg(CDef.Flg.False);
     }
 
     protected void doSetMobileLoginFlg_Equal(Integer mobileLoginFlg) {
@@ -379,11 +405,37 @@ public abstract class AbstractBsMemberLoginCQ extends AbstractConditionQuery {
 
     /**
      * NotEqual(&lt;&gt;). And NullIgnored, OnlyOnceRegistered. <br>
-     * MOBILE_LOGIN_FLG: {NotNull, INT(10)}
+     * MOBILE_LOGIN_FLG: {NotNull, INT(10), classification=Flg}
      * @param mobileLoginFlg The value of mobileLoginFlg as notEqual. (basically NotNull: error as default, or no condition as option)
      */
-    public void setMobileLoginFlg_NotEqual(Integer mobileLoginFlg) {
+    protected void setMobileLoginFlg_NotEqual(Integer mobileLoginFlg) {
         doSetMobileLoginFlg_NotEqual(mobileLoginFlg);
+    }
+
+    /**
+     * NotEqual(&lt;&gt;). As Flg. And NullIgnored, OnlyOnceRegistered. <br>
+     * MOBILE_LOGIN_FLG: {NotNull, INT(10), classification=Flg} <br>
+     * フラグを示す
+     * @param cdef The instance of classification definition (as ENUM type). (basically NotNull: error as default, or no condition as option)
+     */
+    public void setMobileLoginFlg_NotEqual_AsFlg(CDef.Flg cdef) {
+        doSetMobileLoginFlg_NotEqual(cTNum(cdef != null ? cdef.code() : null, Integer.class));
+    }
+
+    /**
+     * NotEqual(&lt;&gt;). As True (1). And NullIgnored, OnlyOnceRegistered. <br>
+     * はい: 有効を示す
+     */
+    public void setMobileLoginFlg_NotEqual_True() {
+        setMobileLoginFlg_NotEqual_AsFlg(CDef.Flg.True);
+    }
+
+    /**
+     * NotEqual(&lt;&gt;). As False (0). And NullIgnored, OnlyOnceRegistered. <br>
+     * いいえ: 無効を示す
+     */
+    public void setMobileLoginFlg_NotEqual_False() {
+        setMobileLoginFlg_NotEqual_AsFlg(CDef.Flg.False);
     }
 
     protected void doSetMobileLoginFlg_NotEqual(Integer mobileLoginFlg) {
@@ -391,74 +443,22 @@ public abstract class AbstractBsMemberLoginCQ extends AbstractConditionQuery {
     }
 
     /**
-     * GreaterThan(&gt;). And NullIgnored, OnlyOnceRegistered. <br>
-     * MOBILE_LOGIN_FLG: {NotNull, INT(10)}
-     * @param mobileLoginFlg The value of mobileLoginFlg as greaterThan. (basically NotNull: error as default, or no condition as option)
-     */
-    public void setMobileLoginFlg_GreaterThan(Integer mobileLoginFlg) {
-        regMobileLoginFlg(CK_GT, mobileLoginFlg);
-    }
-
-    /**
-     * LessThan(&lt;). And NullIgnored, OnlyOnceRegistered. <br>
-     * MOBILE_LOGIN_FLG: {NotNull, INT(10)}
-     * @param mobileLoginFlg The value of mobileLoginFlg as lessThan. (basically NotNull: error as default, or no condition as option)
-     */
-    public void setMobileLoginFlg_LessThan(Integer mobileLoginFlg) {
-        regMobileLoginFlg(CK_LT, mobileLoginFlg);
-    }
-
-    /**
-     * GreaterEqual(&gt;=). And NullIgnored, OnlyOnceRegistered. <br>
-     * MOBILE_LOGIN_FLG: {NotNull, INT(10)}
-     * @param mobileLoginFlg The value of mobileLoginFlg as greaterEqual. (basically NotNull: error as default, or no condition as option)
-     */
-    public void setMobileLoginFlg_GreaterEqual(Integer mobileLoginFlg) {
-        regMobileLoginFlg(CK_GE, mobileLoginFlg);
-    }
-
-    /**
-     * LessEqual(&lt;=). And NullIgnored, OnlyOnceRegistered. <br>
-     * MOBILE_LOGIN_FLG: {NotNull, INT(10)}
-     * @param mobileLoginFlg The value of mobileLoginFlg as lessEqual. (basically NotNull: error as default, or no condition as option)
-     */
-    public void setMobileLoginFlg_LessEqual(Integer mobileLoginFlg) {
-        regMobileLoginFlg(CK_LE, mobileLoginFlg);
-    }
-
-    /**
-     * RangeOf with various options. (versatile) <br>
-     * {(default) minNumber &lt;= column &lt;= maxNumber} <br>
-     * And NullIgnored, OnlyOnceRegistered. <br>
-     * MOBILE_LOGIN_FLG: {NotNull, INT(10)}
-     * @param minNumber The min number of mobileLoginFlg. (basically NotNull: if op.allowOneSide(), null allowed)
-     * @param maxNumber The max number of mobileLoginFlg. (basically NotNull: if op.allowOneSide(), null allowed)
-     * @param opLambda The callback for option of range-of. (NotNull)
-     */
-    public void setMobileLoginFlg_RangeOf(Integer minNumber, Integer maxNumber, ConditionOptionCall<RangeOfOption> opLambda) {
-        setMobileLoginFlg_RangeOf(minNumber, maxNumber, xcROOP(opLambda));
-    }
-
-    /**
-     * RangeOf with various options. (versatile) <br>
-     * {(default) minNumber &lt;= column &lt;= maxNumber} <br>
-     * And NullIgnored, OnlyOnceRegistered. <br>
-     * MOBILE_LOGIN_FLG: {NotNull, INT(10)}
-     * @param minNumber The min number of mobileLoginFlg. (basically NotNull: if op.allowOneSide(), null allowed)
-     * @param maxNumber The max number of mobileLoginFlg. (basically NotNull: if op.allowOneSide(), null allowed)
-     * @param rangeOfOption The option of range-of. (NotNull)
-     */
-    protected void setMobileLoginFlg_RangeOf(Integer minNumber, Integer maxNumber, RangeOfOption rangeOfOption) {
-        regROO(minNumber, maxNumber, xgetCValueMobileLoginFlg(), "MOBILE_LOGIN_FLG", rangeOfOption);
-    }
-
-    /**
      * InScope {in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br>
-     * MOBILE_LOGIN_FLG: {NotNull, INT(10)}
+     * MOBILE_LOGIN_FLG: {NotNull, INT(10), classification=Flg}
      * @param mobileLoginFlgList The collection of mobileLoginFlg as inScope. (basically NotNull, NotEmpty: error as default, or no condition as option)
      */
-    public void setMobileLoginFlg_InScope(Collection<Integer> mobileLoginFlgList) {
+    protected void setMobileLoginFlg_InScope(Collection<Integer> mobileLoginFlgList) {
         doSetMobileLoginFlg_InScope(mobileLoginFlgList);
+    }
+
+    /**
+     * InScope {in (1, 2)}. As Flg. And NullIgnored, NullElementIgnored, SeveralRegistered. <br>
+     * MOBILE_LOGIN_FLG: {NotNull, INT(10), classification=Flg} <br>
+     * フラグを示す
+     * @param cdefList The list of classification definition (as ENUM type). (basically NotNull, NotEmpty: error as default, or no condition as option)
+     */
+    public void setMobileLoginFlg_InScope_AsFlg(Collection<CDef.Flg> cdefList) {
+        doSetMobileLoginFlg_InScope(cTNumL(cdefList, Integer.class));
     }
 
     protected void doSetMobileLoginFlg_InScope(Collection<Integer> mobileLoginFlgList) {
@@ -467,11 +467,21 @@ public abstract class AbstractBsMemberLoginCQ extends AbstractConditionQuery {
 
     /**
      * NotInScope {not in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br>
-     * MOBILE_LOGIN_FLG: {NotNull, INT(10)}
+     * MOBILE_LOGIN_FLG: {NotNull, INT(10), classification=Flg}
      * @param mobileLoginFlgList The collection of mobileLoginFlg as notInScope. (basically NotNull, NotEmpty: error as default, or no condition as option)
      */
-    public void setMobileLoginFlg_NotInScope(Collection<Integer> mobileLoginFlgList) {
+    protected void setMobileLoginFlg_NotInScope(Collection<Integer> mobileLoginFlgList) {
         doSetMobileLoginFlg_NotInScope(mobileLoginFlgList);
+    }
+
+    /**
+     * NotInScope {not in (1, 2)}. As Flg. And NullIgnored, NullElementIgnored, SeveralRegistered. <br>
+     * MOBILE_LOGIN_FLG: {NotNull, INT(10), classification=Flg} <br>
+     * フラグを示す
+     * @param cdefList The list of classification definition (as ENUM type). (basically NotNull, NotEmpty: error as default, or no condition as option)
+     */
+    public void setMobileLoginFlg_NotInScope_AsFlg(Collection<CDef.Flg> cdefList) {
+        doSetMobileLoginFlg_NotInScope(cTNumL(cdefList, Integer.class));
     }
 
     protected void doSetMobileLoginFlg_NotInScope(Collection<Integer> mobileLoginFlgList) {
@@ -483,11 +493,45 @@ public abstract class AbstractBsMemberLoginCQ extends AbstractConditionQuery {
 
     /**
      * Equal(=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
-     * LOGIN_MEMBER_STATUS_CODE: {IX, NotNull, CHAR(3), FK to member_status}
+     * LOGIN_MEMBER_STATUS_CODE: {IX, NotNull, CHAR(3), FK to member_status, classification=MemberStatus}
      * @param loginMemberStatusCode The value of loginMemberStatusCode as equal. (basically NotNull, NotEmpty: error as default, or no condition as option)
      */
-    public void setLoginMemberStatusCode_Equal(String loginMemberStatusCode) {
+    protected void setLoginMemberStatusCode_Equal(String loginMemberStatusCode) {
         doSetLoginMemberStatusCode_Equal(fRES(loginMemberStatusCode));
+    }
+
+    /**
+     * Equal(=). As MemberStatus. And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
+     * LOGIN_MEMBER_STATUS_CODE: {IX, NotNull, CHAR(3), FK to member_status, classification=MemberStatus} <br>
+     * 入会から退会までの会員のステータスを示す
+     * @param cdef The instance of classification definition (as ENUM type). (basically NotNull: error as default, or no condition as option)
+     */
+    public void setLoginMemberStatusCode_Equal_AsMemberStatus(CDef.MemberStatus cdef) {
+        doSetLoginMemberStatusCode_Equal(cdef != null ? cdef.code() : null);
+    }
+
+    /**
+     * Equal(=). As 正式会員 (FML). And OnlyOnceRegistered. <br>
+     * 正式会員: 正式な会員としてサイトサービスが利用可能
+     */
+    public void setLoginMemberStatusCode_Equal_正式会員() {
+        setLoginMemberStatusCode_Equal_AsMemberStatus(CDef.MemberStatus.正式会員);
+    }
+
+    /**
+     * Equal(=). As 退会会員 (WDL). And OnlyOnceRegistered. <br>
+     * 退会会員: 退会が確定した会員でサイトサービスはダメ
+     */
+    public void setLoginMemberStatusCode_Equal_退会会員() {
+        setLoginMemberStatusCode_Equal_AsMemberStatus(CDef.MemberStatus.退会会員);
+    }
+
+    /**
+     * Equal(=). As 仮会員 (PRV). And OnlyOnceRegistered. <br>
+     * 仮会員: 入会直後のステータスで一部のサイトサービスが利用可能
+     */
+    public void setLoginMemberStatusCode_Equal_仮会員() {
+        setLoginMemberStatusCode_Equal_AsMemberStatus(CDef.MemberStatus.仮会員);
     }
 
     protected void doSetLoginMemberStatusCode_Equal(String loginMemberStatusCode) {
@@ -496,11 +540,45 @@ public abstract class AbstractBsMemberLoginCQ extends AbstractConditionQuery {
 
     /**
      * NotEqual(&lt;&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
-     * LOGIN_MEMBER_STATUS_CODE: {IX, NotNull, CHAR(3), FK to member_status}
+     * LOGIN_MEMBER_STATUS_CODE: {IX, NotNull, CHAR(3), FK to member_status, classification=MemberStatus}
      * @param loginMemberStatusCode The value of loginMemberStatusCode as notEqual. (basically NotNull, NotEmpty: error as default, or no condition as option)
      */
-    public void setLoginMemberStatusCode_NotEqual(String loginMemberStatusCode) {
+    protected void setLoginMemberStatusCode_NotEqual(String loginMemberStatusCode) {
         doSetLoginMemberStatusCode_NotEqual(fRES(loginMemberStatusCode));
+    }
+
+    /**
+     * NotEqual(&lt;&gt;). As MemberStatus. And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
+     * LOGIN_MEMBER_STATUS_CODE: {IX, NotNull, CHAR(3), FK to member_status, classification=MemberStatus} <br>
+     * 入会から退会までの会員のステータスを示す
+     * @param cdef The instance of classification definition (as ENUM type). (basically NotNull: error as default, or no condition as option)
+     */
+    public void setLoginMemberStatusCode_NotEqual_AsMemberStatus(CDef.MemberStatus cdef) {
+        doSetLoginMemberStatusCode_NotEqual(cdef != null ? cdef.code() : null);
+    }
+
+    /**
+     * NotEqual(&lt;&gt;). As 正式会員 (FML). And OnlyOnceRegistered. <br>
+     * 正式会員: 正式な会員としてサイトサービスが利用可能
+     */
+    public void setLoginMemberStatusCode_NotEqual_正式会員() {
+        setLoginMemberStatusCode_NotEqual_AsMemberStatus(CDef.MemberStatus.正式会員);
+    }
+
+    /**
+     * NotEqual(&lt;&gt;). As 退会会員 (WDL). And OnlyOnceRegistered. <br>
+     * 退会会員: 退会が確定した会員でサイトサービスはダメ
+     */
+    public void setLoginMemberStatusCode_NotEqual_退会会員() {
+        setLoginMemberStatusCode_NotEqual_AsMemberStatus(CDef.MemberStatus.退会会員);
+    }
+
+    /**
+     * NotEqual(&lt;&gt;). As 仮会員 (PRV). And OnlyOnceRegistered. <br>
+     * 仮会員: 入会直後のステータスで一部のサイトサービスが利用可能
+     */
+    public void setLoginMemberStatusCode_NotEqual_仮会員() {
+        setLoginMemberStatusCode_NotEqual_AsMemberStatus(CDef.MemberStatus.仮会員);
     }
 
     protected void doSetLoginMemberStatusCode_NotEqual(String loginMemberStatusCode) {
@@ -508,48 +586,22 @@ public abstract class AbstractBsMemberLoginCQ extends AbstractConditionQuery {
     }
 
     /**
-     * GreaterThan(&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
-     * LOGIN_MEMBER_STATUS_CODE: {IX, NotNull, CHAR(3), FK to member_status}
-     * @param loginMemberStatusCode The value of loginMemberStatusCode as greaterThan. (basically NotNull, NotEmpty: error as default, or no condition as option)
-     */
-    public void setLoginMemberStatusCode_GreaterThan(String loginMemberStatusCode) {
-        regLoginMemberStatusCode(CK_GT, fRES(loginMemberStatusCode));
-    }
-
-    /**
-     * LessThan(&lt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
-     * LOGIN_MEMBER_STATUS_CODE: {IX, NotNull, CHAR(3), FK to member_status}
-     * @param loginMemberStatusCode The value of loginMemberStatusCode as lessThan. (basically NotNull, NotEmpty: error as default, or no condition as option)
-     */
-    public void setLoginMemberStatusCode_LessThan(String loginMemberStatusCode) {
-        regLoginMemberStatusCode(CK_LT, fRES(loginMemberStatusCode));
-    }
-
-    /**
-     * GreaterEqual(&gt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
-     * LOGIN_MEMBER_STATUS_CODE: {IX, NotNull, CHAR(3), FK to member_status}
-     * @param loginMemberStatusCode The value of loginMemberStatusCode as greaterEqual. (basically NotNull, NotEmpty: error as default, or no condition as option)
-     */
-    public void setLoginMemberStatusCode_GreaterEqual(String loginMemberStatusCode) {
-        regLoginMemberStatusCode(CK_GE, fRES(loginMemberStatusCode));
-    }
-
-    /**
-     * LessEqual(&lt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
-     * LOGIN_MEMBER_STATUS_CODE: {IX, NotNull, CHAR(3), FK to member_status}
-     * @param loginMemberStatusCode The value of loginMemberStatusCode as lessEqual. (basically NotNull, NotEmpty: error as default, or no condition as option)
-     */
-    public void setLoginMemberStatusCode_LessEqual(String loginMemberStatusCode) {
-        regLoginMemberStatusCode(CK_LE, fRES(loginMemberStatusCode));
-    }
-
-    /**
      * InScope {in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br>
-     * LOGIN_MEMBER_STATUS_CODE: {IX, NotNull, CHAR(3), FK to member_status}
+     * LOGIN_MEMBER_STATUS_CODE: {IX, NotNull, CHAR(3), FK to member_status, classification=MemberStatus}
      * @param loginMemberStatusCodeList The collection of loginMemberStatusCode as inScope. (basically NotNull, NotEmpty: error as default, or no condition as option)
      */
-    public void setLoginMemberStatusCode_InScope(Collection<String> loginMemberStatusCodeList) {
+    protected void setLoginMemberStatusCode_InScope(Collection<String> loginMemberStatusCodeList) {
         doSetLoginMemberStatusCode_InScope(loginMemberStatusCodeList);
+    }
+
+    /**
+     * InScope {in ('a', 'b')}. As MemberStatus. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br>
+     * LOGIN_MEMBER_STATUS_CODE: {IX, NotNull, CHAR(3), FK to member_status, classification=MemberStatus} <br>
+     * 入会から退会までの会員のステータスを示す
+     * @param cdefList The list of classification definition (as ENUM type). (basically NotNull, NotEmpty: error as default, or no condition as option)
+     */
+    public void setLoginMemberStatusCode_InScope_AsMemberStatus(Collection<CDef.MemberStatus> cdefList) {
+        doSetLoginMemberStatusCode_InScope(cTStrL(cdefList));
     }
 
     protected void doSetLoginMemberStatusCode_InScope(Collection<String> loginMemberStatusCodeList) {
@@ -558,59 +610,25 @@ public abstract class AbstractBsMemberLoginCQ extends AbstractConditionQuery {
 
     /**
      * NotInScope {not in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br>
-     * LOGIN_MEMBER_STATUS_CODE: {IX, NotNull, CHAR(3), FK to member_status}
+     * LOGIN_MEMBER_STATUS_CODE: {IX, NotNull, CHAR(3), FK to member_status, classification=MemberStatus}
      * @param loginMemberStatusCodeList The collection of loginMemberStatusCode as notInScope. (basically NotNull, NotEmpty: error as default, or no condition as option)
      */
-    public void setLoginMemberStatusCode_NotInScope(Collection<String> loginMemberStatusCodeList) {
+    protected void setLoginMemberStatusCode_NotInScope(Collection<String> loginMemberStatusCodeList) {
         doSetLoginMemberStatusCode_NotInScope(loginMemberStatusCodeList);
+    }
+
+    /**
+     * NotInScope {not in ('a', 'b')}. As MemberStatus. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br>
+     * LOGIN_MEMBER_STATUS_CODE: {IX, NotNull, CHAR(3), FK to member_status, classification=MemberStatus} <br>
+     * 入会から退会までの会員のステータスを示す
+     * @param cdefList The list of classification definition (as ENUM type). (basically NotNull, NotEmpty: error as default, or no condition as option)
+     */
+    public void setLoginMemberStatusCode_NotInScope_AsMemberStatus(Collection<CDef.MemberStatus> cdefList) {
+        doSetLoginMemberStatusCode_NotInScope(cTStrL(cdefList));
     }
 
     protected void doSetLoginMemberStatusCode_NotInScope(Collection<String> loginMemberStatusCodeList) {
         regINS(CK_NINS, cTL(loginMemberStatusCodeList), xgetCValueLoginMemberStatusCode(), "LOGIN_MEMBER_STATUS_CODE");
-    }
-
-    /**
-     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br>
-     * LOGIN_MEMBER_STATUS_CODE: {IX, NotNull, CHAR(3), FK to member_status} <br>
-     * <pre>e.g. setLoginMemberStatusCode_LikeSearch("xxx", op <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> op.<span style="color: #CC4747">likeContain()</span>);</pre>
-     * @param loginMemberStatusCode The value of loginMemberStatusCode as likeSearch. (basically NotNull, NotEmpty: error as default, or no condition as option)
-     * @param opLambda The callback for option of like-search. (NotNull)
-     */
-    public void setLoginMemberStatusCode_LikeSearch(String loginMemberStatusCode, ConditionOptionCall<LikeSearchOption> opLambda) {
-        setLoginMemberStatusCode_LikeSearch(loginMemberStatusCode, xcLSOP(opLambda));
-    }
-
-    /**
-     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br>
-     * LOGIN_MEMBER_STATUS_CODE: {IX, NotNull, CHAR(3), FK to member_status} <br>
-     * <pre>e.g. setLoginMemberStatusCode_LikeSearch("xxx", new <span style="color: #CC4747">LikeSearchOption</span>().likeContain());</pre>
-     * @param loginMemberStatusCode The value of loginMemberStatusCode as likeSearch. (basically NotNull, NotEmpty: error as default, or no condition as option)
-     * @param likeSearchOption The option of like-search. (NotNull)
-     */
-    protected void setLoginMemberStatusCode_LikeSearch(String loginMemberStatusCode, LikeSearchOption likeSearchOption) {
-        regLSQ(CK_LS, fRES(loginMemberStatusCode), xgetCValueLoginMemberStatusCode(), "LOGIN_MEMBER_STATUS_CODE", likeSearchOption);
-    }
-
-    /**
-     * NotLikeSearch with various options. (versatile) {not like 'xxx%' escape ...} <br>
-     * And NullOrEmptyIgnored, SeveralRegistered. <br>
-     * LOGIN_MEMBER_STATUS_CODE: {IX, NotNull, CHAR(3), FK to member_status}
-     * @param loginMemberStatusCode The value of loginMemberStatusCode as notLikeSearch. (basically NotNull, NotEmpty: error as default, or no condition as option)
-     * @param opLambda The callback for option of like-search. (NotNull)
-     */
-    public void setLoginMemberStatusCode_NotLikeSearch(String loginMemberStatusCode, ConditionOptionCall<LikeSearchOption> opLambda) {
-        setLoginMemberStatusCode_NotLikeSearch(loginMemberStatusCode, xcLSOP(opLambda));
-    }
-
-    /**
-     * NotLikeSearch with various options. (versatile) {not like 'xxx%' escape ...} <br>
-     * And NullOrEmptyIgnored, SeveralRegistered. <br>
-     * LOGIN_MEMBER_STATUS_CODE: {IX, NotNull, CHAR(3), FK to member_status}
-     * @param loginMemberStatusCode The value of loginMemberStatusCode as notLikeSearch. (basically NotNull, NotEmpty: error as default, or no condition as option)
-     * @param likeSearchOption The option of not-like-search. (NotNull)
-     */
-    protected void setLoginMemberStatusCode_NotLikeSearch(String loginMemberStatusCode, LikeSearchOption likeSearchOption) {
-        regLSQ(CK_NLS, fRES(loginMemberStatusCode), xgetCValueLoginMemberStatusCode(), "LOGIN_MEMBER_STATUS_CODE", likeSearchOption);
     }
 
     protected void regLoginMemberStatusCode(ConditionKey ky, Object vl) { regQ(ky, vl, xgetCValueLoginMemberStatusCode(), "LOGIN_MEMBER_STATUS_CODE"); }

@@ -37,20 +37,18 @@
 # *The line that starts with '#' means comment-out.
 #
 map:{
-    # example for implicit classification
-    #; Flg = list:{
-    #    ; map:{topComment=general boolean classification for every flg-column; codeType=Number}
-    #    ; map:{code=1; name=True ; alias=Checked  ; comment=means yes; sisterCode=true}
-    #    ; map:{code=0; name=False; alias=Unchecked; comment=means no ; sisterCode=false}
-    #}
-    # example for table classification
-    #; MemberStatus = list:{
-    #    ; map:{topComment=status of member from entry to withdrawal; codeType=String}
-    #    ; map:{
-    #        ; table=MEMBER_STATUS
-    #        ; code=MEMBER_STATUS_CODE; name=MEMBER_STATUS_NAME
-    #        ; comment=DESCRIPTION; orderBy=DISPLAY_ORDER
-    #    }
-    #}
+    ; Flg = list:{
+        ; map:{topComment=フラグを示す; codeType=Number}
+        ; map:{code=1; name=True ; alias=はい  ; comment=有効を示す}
+        ; map:{code=0; name=False; alias=いいえ; comment=無効を示す}
+    }
+    ; MemberStatus = list:{
+        ; map:{topComment=入会から退会までの会員のステータスを示す; codeType=String}
+        ; map:{
+            ; table=MEMBER_STATUS
+            ; code=MEMBER_STATUS_CODE; name=MEMBER_STATUS_NAME
+            ; comment=DESCRIPTION; orderBy=DISPLAY_ORDER
+        }
+    }
 }
 # ----------------/

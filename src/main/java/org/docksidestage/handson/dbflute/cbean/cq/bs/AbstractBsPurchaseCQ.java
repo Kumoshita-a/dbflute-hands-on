@@ -790,11 +790,37 @@ public abstract class AbstractBsPurchaseCQ extends AbstractConditionQuery {
 
     /**
      * Equal(=). And NullIgnored, OnlyOnceRegistered. <br>
-     * PAYMENT_COMPLETE_FLG: {NotNull, INT(10)}
+     * PAYMENT_COMPLETE_FLG: {NotNull, INT(10), classification=Flg}
      * @param paymentCompleteFlg The value of paymentCompleteFlg as equal. (basically NotNull: error as default, or no condition as option)
      */
-    public void setPaymentCompleteFlg_Equal(Integer paymentCompleteFlg) {
+    protected void setPaymentCompleteFlg_Equal(Integer paymentCompleteFlg) {
         doSetPaymentCompleteFlg_Equal(paymentCompleteFlg);
+    }
+
+    /**
+     * Equal(=). As Flg. And NullIgnored, OnlyOnceRegistered. <br>
+     * PAYMENT_COMPLETE_FLG: {NotNull, INT(10), classification=Flg} <br>
+     * フラグを示す
+     * @param cdef The instance of classification definition (as ENUM type). (basically NotNull: error as default, or no condition as option)
+     */
+    public void setPaymentCompleteFlg_Equal_AsFlg(CDef.Flg cdef) {
+        doSetPaymentCompleteFlg_Equal(cTNum(cdef != null ? cdef.code() : null, Integer.class));
+    }
+
+    /**
+     * Equal(=). As True (1). And NullIgnored, OnlyOnceRegistered. <br>
+     * はい: 有効を示す
+     */
+    public void setPaymentCompleteFlg_Equal_True() {
+        setPaymentCompleteFlg_Equal_AsFlg(CDef.Flg.True);
+    }
+
+    /**
+     * Equal(=). As False (0). And NullIgnored, OnlyOnceRegistered. <br>
+     * いいえ: 無効を示す
+     */
+    public void setPaymentCompleteFlg_Equal_False() {
+        setPaymentCompleteFlg_Equal_AsFlg(CDef.Flg.False);
     }
 
     protected void doSetPaymentCompleteFlg_Equal(Integer paymentCompleteFlg) {
@@ -803,11 +829,37 @@ public abstract class AbstractBsPurchaseCQ extends AbstractConditionQuery {
 
     /**
      * NotEqual(&lt;&gt;). And NullIgnored, OnlyOnceRegistered. <br>
-     * PAYMENT_COMPLETE_FLG: {NotNull, INT(10)}
+     * PAYMENT_COMPLETE_FLG: {NotNull, INT(10), classification=Flg}
      * @param paymentCompleteFlg The value of paymentCompleteFlg as notEqual. (basically NotNull: error as default, or no condition as option)
      */
-    public void setPaymentCompleteFlg_NotEqual(Integer paymentCompleteFlg) {
+    protected void setPaymentCompleteFlg_NotEqual(Integer paymentCompleteFlg) {
         doSetPaymentCompleteFlg_NotEqual(paymentCompleteFlg);
+    }
+
+    /**
+     * NotEqual(&lt;&gt;). As Flg. And NullIgnored, OnlyOnceRegistered. <br>
+     * PAYMENT_COMPLETE_FLG: {NotNull, INT(10), classification=Flg} <br>
+     * フラグを示す
+     * @param cdef The instance of classification definition (as ENUM type). (basically NotNull: error as default, or no condition as option)
+     */
+    public void setPaymentCompleteFlg_NotEqual_AsFlg(CDef.Flg cdef) {
+        doSetPaymentCompleteFlg_NotEqual(cTNum(cdef != null ? cdef.code() : null, Integer.class));
+    }
+
+    /**
+     * NotEqual(&lt;&gt;). As True (1). And NullIgnored, OnlyOnceRegistered. <br>
+     * はい: 有効を示す
+     */
+    public void setPaymentCompleteFlg_NotEqual_True() {
+        setPaymentCompleteFlg_NotEqual_AsFlg(CDef.Flg.True);
+    }
+
+    /**
+     * NotEqual(&lt;&gt;). As False (0). And NullIgnored, OnlyOnceRegistered. <br>
+     * いいえ: 無効を示す
+     */
+    public void setPaymentCompleteFlg_NotEqual_False() {
+        setPaymentCompleteFlg_NotEqual_AsFlg(CDef.Flg.False);
     }
 
     protected void doSetPaymentCompleteFlg_NotEqual(Integer paymentCompleteFlg) {
@@ -815,74 +867,22 @@ public abstract class AbstractBsPurchaseCQ extends AbstractConditionQuery {
     }
 
     /**
-     * GreaterThan(&gt;). And NullIgnored, OnlyOnceRegistered. <br>
-     * PAYMENT_COMPLETE_FLG: {NotNull, INT(10)}
-     * @param paymentCompleteFlg The value of paymentCompleteFlg as greaterThan. (basically NotNull: error as default, or no condition as option)
-     */
-    public void setPaymentCompleteFlg_GreaterThan(Integer paymentCompleteFlg) {
-        regPaymentCompleteFlg(CK_GT, paymentCompleteFlg);
-    }
-
-    /**
-     * LessThan(&lt;). And NullIgnored, OnlyOnceRegistered. <br>
-     * PAYMENT_COMPLETE_FLG: {NotNull, INT(10)}
-     * @param paymentCompleteFlg The value of paymentCompleteFlg as lessThan. (basically NotNull: error as default, or no condition as option)
-     */
-    public void setPaymentCompleteFlg_LessThan(Integer paymentCompleteFlg) {
-        regPaymentCompleteFlg(CK_LT, paymentCompleteFlg);
-    }
-
-    /**
-     * GreaterEqual(&gt;=). And NullIgnored, OnlyOnceRegistered. <br>
-     * PAYMENT_COMPLETE_FLG: {NotNull, INT(10)}
-     * @param paymentCompleteFlg The value of paymentCompleteFlg as greaterEqual. (basically NotNull: error as default, or no condition as option)
-     */
-    public void setPaymentCompleteFlg_GreaterEqual(Integer paymentCompleteFlg) {
-        regPaymentCompleteFlg(CK_GE, paymentCompleteFlg);
-    }
-
-    /**
-     * LessEqual(&lt;=). And NullIgnored, OnlyOnceRegistered. <br>
-     * PAYMENT_COMPLETE_FLG: {NotNull, INT(10)}
-     * @param paymentCompleteFlg The value of paymentCompleteFlg as lessEqual. (basically NotNull: error as default, or no condition as option)
-     */
-    public void setPaymentCompleteFlg_LessEqual(Integer paymentCompleteFlg) {
-        regPaymentCompleteFlg(CK_LE, paymentCompleteFlg);
-    }
-
-    /**
-     * RangeOf with various options. (versatile) <br>
-     * {(default) minNumber &lt;= column &lt;= maxNumber} <br>
-     * And NullIgnored, OnlyOnceRegistered. <br>
-     * PAYMENT_COMPLETE_FLG: {NotNull, INT(10)}
-     * @param minNumber The min number of paymentCompleteFlg. (basically NotNull: if op.allowOneSide(), null allowed)
-     * @param maxNumber The max number of paymentCompleteFlg. (basically NotNull: if op.allowOneSide(), null allowed)
-     * @param opLambda The callback for option of range-of. (NotNull)
-     */
-    public void setPaymentCompleteFlg_RangeOf(Integer minNumber, Integer maxNumber, ConditionOptionCall<RangeOfOption> opLambda) {
-        setPaymentCompleteFlg_RangeOf(minNumber, maxNumber, xcROOP(opLambda));
-    }
-
-    /**
-     * RangeOf with various options. (versatile) <br>
-     * {(default) minNumber &lt;= column &lt;= maxNumber} <br>
-     * And NullIgnored, OnlyOnceRegistered. <br>
-     * PAYMENT_COMPLETE_FLG: {NotNull, INT(10)}
-     * @param minNumber The min number of paymentCompleteFlg. (basically NotNull: if op.allowOneSide(), null allowed)
-     * @param maxNumber The max number of paymentCompleteFlg. (basically NotNull: if op.allowOneSide(), null allowed)
-     * @param rangeOfOption The option of range-of. (NotNull)
-     */
-    protected void setPaymentCompleteFlg_RangeOf(Integer minNumber, Integer maxNumber, RangeOfOption rangeOfOption) {
-        regROO(minNumber, maxNumber, xgetCValuePaymentCompleteFlg(), "PAYMENT_COMPLETE_FLG", rangeOfOption);
-    }
-
-    /**
      * InScope {in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br>
-     * PAYMENT_COMPLETE_FLG: {NotNull, INT(10)}
+     * PAYMENT_COMPLETE_FLG: {NotNull, INT(10), classification=Flg}
      * @param paymentCompleteFlgList The collection of paymentCompleteFlg as inScope. (basically NotNull, NotEmpty: error as default, or no condition as option)
      */
-    public void setPaymentCompleteFlg_InScope(Collection<Integer> paymentCompleteFlgList) {
+    protected void setPaymentCompleteFlg_InScope(Collection<Integer> paymentCompleteFlgList) {
         doSetPaymentCompleteFlg_InScope(paymentCompleteFlgList);
+    }
+
+    /**
+     * InScope {in (1, 2)}. As Flg. And NullIgnored, NullElementIgnored, SeveralRegistered. <br>
+     * PAYMENT_COMPLETE_FLG: {NotNull, INT(10), classification=Flg} <br>
+     * フラグを示す
+     * @param cdefList The list of classification definition (as ENUM type). (basically NotNull, NotEmpty: error as default, or no condition as option)
+     */
+    public void setPaymentCompleteFlg_InScope_AsFlg(Collection<CDef.Flg> cdefList) {
+        doSetPaymentCompleteFlg_InScope(cTNumL(cdefList, Integer.class));
     }
 
     protected void doSetPaymentCompleteFlg_InScope(Collection<Integer> paymentCompleteFlgList) {
@@ -891,11 +891,21 @@ public abstract class AbstractBsPurchaseCQ extends AbstractConditionQuery {
 
     /**
      * NotInScope {not in (1, 2)}. And NullIgnored, NullElementIgnored, SeveralRegistered. <br>
-     * PAYMENT_COMPLETE_FLG: {NotNull, INT(10)}
+     * PAYMENT_COMPLETE_FLG: {NotNull, INT(10), classification=Flg}
      * @param paymentCompleteFlgList The collection of paymentCompleteFlg as notInScope. (basically NotNull, NotEmpty: error as default, or no condition as option)
      */
-    public void setPaymentCompleteFlg_NotInScope(Collection<Integer> paymentCompleteFlgList) {
+    protected void setPaymentCompleteFlg_NotInScope(Collection<Integer> paymentCompleteFlgList) {
         doSetPaymentCompleteFlg_NotInScope(paymentCompleteFlgList);
+    }
+
+    /**
+     * NotInScope {not in (1, 2)}. As Flg. And NullIgnored, NullElementIgnored, SeveralRegistered. <br>
+     * PAYMENT_COMPLETE_FLG: {NotNull, INT(10), classification=Flg} <br>
+     * フラグを示す
+     * @param cdefList The list of classification definition (as ENUM type). (basically NotNull, NotEmpty: error as default, or no condition as option)
+     */
+    public void setPaymentCompleteFlg_NotInScope_AsFlg(Collection<CDef.Flg> cdefList) {
+        doSetPaymentCompleteFlg_NotInScope(cTNumL(cdefList, Integer.class));
     }
 
     protected void doSetPaymentCompleteFlg_NotInScope(Collection<Integer> paymentCompleteFlgList) {

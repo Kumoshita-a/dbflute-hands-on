@@ -109,14 +109,14 @@ public class BsMemberStatusCQ extends AbstractBsMemberStatusCQ {
 
     /**
      * Add order-by as ascend. <br>
-     * MEMBER_STATUS_CODE: {PK, NotNull, CHAR(3)}
+     * MEMBER_STATUS_CODE: {PK, NotNull, CHAR(3), classification=MemberStatus}
      * @return this. (NotNull)
      */
     public BsMemberStatusCQ addOrderBy_MemberStatusCode_Asc() { regOBA("MEMBER_STATUS_CODE"); return this; }
 
     /**
      * Add order-by as descend. <br>
-     * MEMBER_STATUS_CODE: {PK, NotNull, CHAR(3)}
+     * MEMBER_STATUS_CODE: {PK, NotNull, CHAR(3), classification=MemberStatus}
      * @return this. (NotNull)
      */
     public BsMemberStatusCQ addOrderBy_MemberStatusCode_Desc() { regOBD("MEMBER_STATUS_CODE"); return this; }

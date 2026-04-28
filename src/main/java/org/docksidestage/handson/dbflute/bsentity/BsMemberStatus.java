@@ -7,6 +7,7 @@ import org.dbflute.dbmeta.DBMeta;
 import org.dbflute.dbmeta.AbstractEntity;
 import org.dbflute.dbmeta.accessory.DomainEntity;
 import org.docksidestage.handson.dbflute.allcommon.DBMetaInstanceHandler;
+import org.docksidestage.handson.dbflute.allcommon.CDef;
 import org.docksidestage.handson.dbflute.exentity.*;
 
 /**
@@ -25,7 +26,7 @@ public abstract class BsMemberStatus extends AbstractEntity implements DomainEnt
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    /** MEMBER_STATUS_CODE: {PK, NotNull, CHAR(3)} */
+    /** MEMBER_STATUS_CODE: {PK, NotNull, CHAR(3), classification=MemberStatus} */
     protected String _memberStatusCode;
 
     /** MEMBER_STATUS_NAME: {NotNull, VARCHAR(50)} */
@@ -68,6 +69,93 @@ public abstract class BsMemberStatus extends AbstractEntity implements DomainEnt
         __uniqueDrivenProperties.clear();
         __uniqueDrivenProperties.addPropertyName("displayOrder");
         setDisplayOrder(displayOrder);
+    }
+
+    // ===================================================================================
+    //                                                             Classification Property
+    //                                                             =======================
+    /**
+     * Get the value of memberStatusCode as the classification of MemberStatus. <br>
+     * MEMBER_STATUS_CODE: {PK, NotNull, CHAR(3), classification=MemberStatus} <br>
+     * 入会から退会までの会員のステータスを示す
+     * <p>It's treated as case insensitive and if the code value is null, it returns null.</p>
+     * @return The instance of classification definition (as ENUM type). (NullAllowed: when the column value is null)
+     */
+    public CDef.MemberStatus getMemberStatusCodeAsMemberStatus() {
+        return CDef.MemberStatus.of(getMemberStatusCode()).orElse(null);
+    }
+
+    /**
+     * Set the value of memberStatusCode as the classification of MemberStatus. <br>
+     * MEMBER_STATUS_CODE: {PK, NotNull, CHAR(3), classification=MemberStatus} <br>
+     * 入会から退会までの会員のステータスを示す
+     * @param cdef The instance of classification definition (as ENUM type). (NullAllowed: if null, null value is set to the column)
+     */
+    public void setMemberStatusCodeAsMemberStatus(CDef.MemberStatus cdef) {
+        setMemberStatusCode(cdef != null ? cdef.code() : null);
+    }
+
+    // ===================================================================================
+    //                                                              Classification Setting
+    //                                                              ======================
+    /**
+     * Set the value of memberStatusCode as 正式会員 (FML). <br>
+     * 正式会員: 正式な会員としてサイトサービスが利用可能
+     */
+    public void setMemberStatusCode_正式会員() {
+        setMemberStatusCodeAsMemberStatus(CDef.MemberStatus.正式会員);
+    }
+
+    /**
+     * Set the value of memberStatusCode as 退会会員 (WDL). <br>
+     * 退会会員: 退会が確定した会員でサイトサービスはダメ
+     */
+    public void setMemberStatusCode_退会会員() {
+        setMemberStatusCodeAsMemberStatus(CDef.MemberStatus.退会会員);
+    }
+
+    /**
+     * Set the value of memberStatusCode as 仮会員 (PRV). <br>
+     * 仮会員: 入会直後のステータスで一部のサイトサービスが利用可能
+     */
+    public void setMemberStatusCode_仮会員() {
+        setMemberStatusCodeAsMemberStatus(CDef.MemberStatus.仮会員);
+    }
+
+    // ===================================================================================
+    //                                                        Classification Determination
+    //                                                        ============================
+    /**
+     * Is the value of memberStatusCode 正式会員? <br>
+     * 正式会員: 正式な会員としてサイトサービスが利用可能
+     * <p>It's treated as case insensitive and if the code value is null, it returns false.</p>
+     * @return The determination, true or false.
+     */
+    public boolean isMemberStatusCode正式会員() {
+        CDef.MemberStatus cdef = getMemberStatusCodeAsMemberStatus();
+        return cdef != null ? cdef.equals(CDef.MemberStatus.正式会員) : false;
+    }
+
+    /**
+     * Is the value of memberStatusCode 退会会員? <br>
+     * 退会会員: 退会が確定した会員でサイトサービスはダメ
+     * <p>It's treated as case insensitive and if the code value is null, it returns false.</p>
+     * @return The determination, true or false.
+     */
+    public boolean isMemberStatusCode退会会員() {
+        CDef.MemberStatus cdef = getMemberStatusCodeAsMemberStatus();
+        return cdef != null ? cdef.equals(CDef.MemberStatus.退会会員) : false;
+    }
+
+    /**
+     * Is the value of memberStatusCode 仮会員? <br>
+     * 仮会員: 入会直後のステータスで一部のサイトサービスが利用可能
+     * <p>It's treated as case insensitive and if the code value is null, it returns false.</p>
+     * @return The determination, true or false.
+     */
+    public boolean isMemberStatusCode仮会員() {
+        CDef.MemberStatus cdef = getMemberStatusCodeAsMemberStatus();
+        return cdef != null ? cdef.equals(CDef.MemberStatus.仮会員) : false;
     }
 
     // ===================================================================================
@@ -188,7 +276,7 @@ public abstract class BsMemberStatus extends AbstractEntity implements DomainEnt
     //                                                                            Accessor
     //                                                                            ========
     /**
-     * [get] MEMBER_STATUS_CODE: {PK, NotNull, CHAR(3)} <br>
+     * [get] MEMBER_STATUS_CODE: {PK, NotNull, CHAR(3), classification=MemberStatus} <br>
      * 会員ステータスコード: 会員ステータスを識別するコード。
      * @return The value of the column 'MEMBER_STATUS_CODE'. (basically NotNull if selected: for the constraint)
      */
@@ -198,11 +286,12 @@ public abstract class BsMemberStatus extends AbstractEntity implements DomainEnt
     }
 
     /**
-     * [set] MEMBER_STATUS_CODE: {PK, NotNull, CHAR(3)} <br>
+     * [set] MEMBER_STATUS_CODE: {PK, NotNull, CHAR(3), classification=MemberStatus} <br>
      * 会員ステータスコード: 会員ステータスを識別するコード。
      * @param memberStatusCode The value of the column 'MEMBER_STATUS_CODE'. (basically NotNull if update: for the constraint)
      */
-    public void setMemberStatusCode(String memberStatusCode) {
+    protected void setMemberStatusCode(String memberStatusCode) {
+        checkClassificationCode("MEMBER_STATUS_CODE", CDef.DefMeta.MemberStatus, memberStatusCode);
         registerModifiedProperty("memberStatusCode");
         _memberStatusCode = memberStatusCode;
     }
@@ -269,5 +358,13 @@ public abstract class BsMemberStatus extends AbstractEntity implements DomainEnt
     public void setDisplayOrder(Integer displayOrder) {
         registerModifiedProperty("displayOrder");
         _displayOrder = displayOrder;
+    }
+
+    /**
+     * For framework so basically DON'T use this method.
+     * @param memberStatusCode The value of the column 'MEMBER_STATUS_CODE'. (basically NotNull if update: for the constraint)
+     */
+    public void mynativeMappingMemberStatusCode(String memberStatusCode) {
+        setMemberStatusCode(memberStatusCode);
     }
 }

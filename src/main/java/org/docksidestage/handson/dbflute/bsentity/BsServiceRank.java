@@ -7,6 +7,7 @@ import org.dbflute.dbmeta.DBMeta;
 import org.dbflute.dbmeta.AbstractEntity;
 import org.dbflute.dbmeta.accessory.DomainEntity;
 import org.docksidestage.handson.dbflute.allcommon.DBMetaInstanceHandler;
+import org.docksidestage.handson.dbflute.allcommon.CDef;
 import org.docksidestage.handson.dbflute.exentity.*;
 
 /**
@@ -35,7 +36,7 @@ public abstract class BsServiceRank extends AbstractEntity implements DomainEnti
     /** SERVICE_POINT_INCIDENCE: {NotNull, DECIMAL(5, 3)} */
     protected java.math.BigDecimal _servicePointIncidence;
 
-    /** NEW_ACCEPTABLE_FLG: {NotNull, INT(10)} */
+    /** NEW_ACCEPTABLE_FLG: {NotNull, INT(10), classification=Flg} */
     protected Integer _newAcceptableFlg;
 
     /** DESCRIPTION: {NotNull, VARCHAR(200)} */
@@ -75,6 +76,95 @@ public abstract class BsServiceRank extends AbstractEntity implements DomainEnti
         __uniqueDrivenProperties.clear();
         __uniqueDrivenProperties.addPropertyName("displayOrder");
         setDisplayOrder(displayOrder);
+    }
+
+    // ===================================================================================
+    //                                                             Classification Property
+    //                                                             =======================
+    /**
+     * Get the value of newAcceptableFlg as the classification of Flg. <br>
+     * NEW_ACCEPTABLE_FLG: {NotNull, INT(10), classification=Flg} <br>
+     * フラグを示す
+     * <p>It's treated as case insensitive and if the code value is null, it returns null.</p>
+     * @return The instance of classification definition (as ENUM type). (NullAllowed: when the column value is null)
+     */
+    public CDef.Flg getNewAcceptableFlgAsFlg() {
+        return CDef.Flg.of(getNewAcceptableFlg()).orElse(null);
+    }
+
+    /**
+     * Set the value of newAcceptableFlg as the classification of Flg. <br>
+     * NEW_ACCEPTABLE_FLG: {NotNull, INT(10), classification=Flg} <br>
+     * フラグを示す
+     * @param cdef The instance of classification definition (as ENUM type). (NullAllowed: if null, null value is set to the column)
+     */
+    public void setNewAcceptableFlgAsFlg(CDef.Flg cdef) {
+        setNewAcceptableFlg(cdef != null ? toNumber(cdef.code(), Integer.class) : null);
+    }
+
+    // ===================================================================================
+    //                                                              Classification Setting
+    //                                                              ======================
+    /**
+     * Set the value of newAcceptableFlg as True (1). <br>
+     * はい: 有効を示す
+     */
+    public void setNewAcceptableFlg_True() {
+        setNewAcceptableFlgAsFlg(CDef.Flg.True);
+    }
+
+    /**
+     * Set the value of newAcceptableFlg as False (0). <br>
+     * いいえ: 無効を示す
+     */
+    public void setNewAcceptableFlg_False() {
+        setNewAcceptableFlgAsFlg(CDef.Flg.False);
+    }
+
+    // ===================================================================================
+    //                                                        Classification Determination
+    //                                                        ============================
+    /**
+     * Is the value of newAcceptableFlg True? <br>
+     * はい: 有効を示す
+     * <p>It's treated as case insensitive and if the code value is null, it returns false.</p>
+     * @return The determination, true or false.
+     */
+    public boolean isNewAcceptableFlgTrue() {
+        CDef.Flg cdef = getNewAcceptableFlgAsFlg();
+        return cdef != null ? cdef.equals(CDef.Flg.True) : false;
+    }
+
+    /**
+     * Is the value of newAcceptableFlg False? <br>
+     * いいえ: 無効を示す
+     * <p>It's treated as case insensitive and if the code value is null, it returns false.</p>
+     * @return The determination, true or false.
+     */
+    public boolean isNewAcceptableFlgFalse() {
+        CDef.Flg cdef = getNewAcceptableFlgAsFlg();
+        return cdef != null ? cdef.equals(CDef.Flg.False) : false;
+    }
+
+    // ===================================================================================
+    //                                                           Classification Name/Alias
+    //                                                           =========================
+    /**
+     * Get the value of the column 'newAcceptableFlg' as classification name.
+     * @return The string of classification name. (NullAllowed: when the column value is null)
+     */
+    public String getNewAcceptableFlgName() {
+        CDef.Flg cdef = getNewAcceptableFlgAsFlg();
+        return cdef != null ? cdef.name() : null;
+    }
+
+    /**
+     * Get the value of the column 'newAcceptableFlg' as classification alias.
+     * @return The string of classification alias. (NullAllowed: when the column value is null)
+     */
+    public String getNewAcceptableFlgAlias() {
+        CDef.Flg cdef = getNewAcceptableFlgAsFlg();
+        return cdef != null ? cdef.alias() : null;
     }
 
     // ===================================================================================
@@ -237,7 +327,7 @@ public abstract class BsServiceRank extends AbstractEntity implements DomainEnti
     }
 
     /**
-     * [get] NEW_ACCEPTABLE_FLG: {NotNull, INT(10)} <br>
+     * [get] NEW_ACCEPTABLE_FLG: {NotNull, INT(10), classification=Flg} <br>
      * 新規受け入れ可能フラグ: このランクへの新規受け入れができるかどうか。
      * @return The value of the column 'NEW_ACCEPTABLE_FLG'. (basically NotNull if selected: for the constraint)
      */
@@ -247,11 +337,12 @@ public abstract class BsServiceRank extends AbstractEntity implements DomainEnti
     }
 
     /**
-     * [set] NEW_ACCEPTABLE_FLG: {NotNull, INT(10)} <br>
+     * [set] NEW_ACCEPTABLE_FLG: {NotNull, INT(10), classification=Flg} <br>
      * 新規受け入れ可能フラグ: このランクへの新規受け入れができるかどうか。
      * @param newAcceptableFlg The value of the column 'NEW_ACCEPTABLE_FLG'. (basically NotNull if update: for the constraint)
      */
-    public void setNewAcceptableFlg(Integer newAcceptableFlg) {
+    protected void setNewAcceptableFlg(Integer newAcceptableFlg) {
+        checkClassificationCode("NEW_ACCEPTABLE_FLG", CDef.DefMeta.Flg, newAcceptableFlg);
         registerModifiedProperty("newAcceptableFlg");
         _newAcceptableFlg = newAcceptableFlg;
     }
@@ -290,5 +381,13 @@ public abstract class BsServiceRank extends AbstractEntity implements DomainEnti
     public void setDisplayOrder(Integer displayOrder) {
         registerModifiedProperty("displayOrder");
         _displayOrder = displayOrder;
+    }
+
+    /**
+     * For framework so basically DON'T use this method.
+     * @param newAcceptableFlg The value of the column 'NEW_ACCEPTABLE_FLG'. (basically NotNull if update: for the constraint)
+     */
+    public void mynativeMappingNewAcceptableFlg(Integer newAcceptableFlg) {
+        setNewAcceptableFlg(newAcceptableFlg);
     }
 }
