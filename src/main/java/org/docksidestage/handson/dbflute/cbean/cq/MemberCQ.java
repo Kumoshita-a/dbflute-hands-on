@@ -32,5 +32,12 @@ public class MemberCQ extends BsMemberCQ {
     // ===================================================================================
     //                                                                       Arrange Query
     //                                                                       =============
-    // You can make your arranged query methods here. e.g. public void arrangeXxx()
+    /**
+     * 条件：銀行振込で購入を支払ったことのある会員
+     */
+    public void arrangePaidByBankTransfer() {
+        existsPurchase(pCB -> {
+            pCB.query().existsPurchasePayment(ppCB -> ppCB.query().setPaymentMethodCode_Equal_BankTransfer());
+        });
+    }
 }

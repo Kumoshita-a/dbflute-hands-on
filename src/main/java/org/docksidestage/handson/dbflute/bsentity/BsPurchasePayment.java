@@ -9,6 +9,7 @@ import org.dbflute.dbmeta.AbstractEntity;
 import org.dbflute.dbmeta.accessory.DomainEntity;
 import org.dbflute.optional.OptionalEntity;
 import org.docksidestage.handson.dbflute.allcommon.DBMetaInstanceHandler;
+import org.docksidestage.handson.dbflute.allcommon.CDef;
 import org.docksidestage.handson.dbflute.exentity.*;
 
 /**
@@ -40,7 +41,7 @@ public abstract class BsPurchasePayment extends AbstractEntity implements Domain
     /** PAYMENT_DATETIME: {IX+, NotNull, DATETIME(19)} */
     protected java.time.LocalDateTime _paymentDatetime;
 
-    /** PAYMENT_METHOD_CODE: {NotNull, CHAR(3)} */
+    /** PAYMENT_METHOD_CODE: {NotNull, CHAR(3), classification=PaymentMethod} */
     protected String _paymentMethodCode;
 
     /** REGISTER_DATETIME: {NotNull, DATETIME(19)} */
@@ -75,6 +76,124 @@ public abstract class BsPurchasePayment extends AbstractEntity implements Domain
     public boolean hasPrimaryKeyValue() {
         if (_purchasePaymentId == null) { return false; }
         return true;
+    }
+
+    // ===================================================================================
+    //                                                             Classification Property
+    //                                                             =======================
+    /**
+     * Get the value of paymentMethodCode as the classification of PaymentMethod. <br>
+     * PAYMENT_METHOD_CODE: {NotNull, CHAR(3), classification=PaymentMethod} <br>
+     * 支払方法
+     * <p>It's treated as case insensitive and if the code value is null, it returns null.</p>
+     * @return The instance of classification definition (as ENUM type). (NullAllowed: when the column value is null)
+     */
+    public CDef.PaymentMethod getPaymentMethodCodeAsPaymentMethod() {
+        return CDef.PaymentMethod.of(getPaymentMethodCode()).orElse(null);
+    }
+
+    /**
+     * Set the value of paymentMethodCode as the classification of PaymentMethod. <br>
+     * PAYMENT_METHOD_CODE: {NotNull, CHAR(3), classification=PaymentMethod} <br>
+     * 支払方法
+     * @param cdef The instance of classification definition (as ENUM type). (NullAllowed: if null, null value is set to the column)
+     */
+    public void setPaymentMethodCodeAsPaymentMethod(CDef.PaymentMethod cdef) {
+        setPaymentMethodCode(cdef != null ? cdef.code() : null);
+    }
+
+    // ===================================================================================
+    //                                                              Classification Setting
+    //                                                              ======================
+    /**
+     * Set the value of paymentMethodCode as ByHand (HAN). <br>
+     * 手渡し: Face-to-Faceの手渡しで商品と交換
+     */
+    public void setPaymentMethodCode_ByHand() {
+        setPaymentMethodCodeAsPaymentMethod(CDef.PaymentMethod.ByHand);
+    }
+
+    /**
+     * Set the value of paymentMethodCode as BankTransfer (BAK). <br>
+     * 銀行振込: 銀行振込で確認してから商品発送
+     */
+    public void setPaymentMethodCode_BankTransfer() {
+        setPaymentMethodCodeAsPaymentMethod(CDef.PaymentMethod.BankTransfer);
+    }
+
+    /**
+     * Set the value of paymentMethodCode as CreditCard (CRC). <br>
+     * クレジットカード: クレジットカードの番号を教えてもらう
+     */
+    public void setPaymentMethodCode_CreditCard() {
+        setPaymentMethodCodeAsPaymentMethod(CDef.PaymentMethod.CreditCard);
+    }
+
+    // ===================================================================================
+    //                                                        Classification Determination
+    //                                                        ============================
+    /**
+     * Is the value of paymentMethodCode ByHand? <br>
+     * 手渡し: Face-to-Faceの手渡しで商品と交換
+     * <p>It's treated as case insensitive and if the code value is null, it returns false.</p>
+     * @return The determination, true or false.
+     */
+    public boolean isPaymentMethodCodeByHand() {
+        CDef.PaymentMethod cdef = getPaymentMethodCodeAsPaymentMethod();
+        return cdef != null ? cdef.equals(CDef.PaymentMethod.ByHand) : false;
+    }
+
+    /**
+     * Is the value of paymentMethodCode BankTransfer? <br>
+     * 銀行振込: 銀行振込で確認してから商品発送
+     * <p>It's treated as case insensitive and if the code value is null, it returns false.</p>
+     * @return The determination, true or false.
+     */
+    public boolean isPaymentMethodCodeBankTransfer() {
+        CDef.PaymentMethod cdef = getPaymentMethodCodeAsPaymentMethod();
+        return cdef != null ? cdef.equals(CDef.PaymentMethod.BankTransfer) : false;
+    }
+
+    /**
+     * Is the value of paymentMethodCode CreditCard? <br>
+     * クレジットカード: クレジットカードの番号を教えてもらう
+     * <p>It's treated as case insensitive and if the code value is null, it returns false.</p>
+     * @return The determination, true or false.
+     */
+    public boolean isPaymentMethodCodeCreditCard() {
+        CDef.PaymentMethod cdef = getPaymentMethodCodeAsPaymentMethod();
+        return cdef != null ? cdef.equals(CDef.PaymentMethod.CreditCard) : false;
+    }
+
+    /**
+     * 最も推奨されている方法 <br>
+     * The group elements:[ByHand]
+     * @return The determination, true or false.
+     */
+    public boolean isPaymentMethodCode_Recommended() {
+        CDef.PaymentMethod cdef = getPaymentMethodCodeAsPaymentMethod();
+        return cdef != null && cdef.isRecommended();
+    }
+
+    // ===================================================================================
+    //                                                           Classification Name/Alias
+    //                                                           =========================
+    /**
+     * Get the value of the column 'paymentMethodCode' as classification name.
+     * @return The string of classification name. (NullAllowed: when the column value is null)
+     */
+    public String getPaymentMethodCodeName() {
+        CDef.PaymentMethod cdef = getPaymentMethodCodeAsPaymentMethod();
+        return cdef != null ? cdef.name() : null;
+    }
+
+    /**
+     * Get the value of the column 'paymentMethodCode' as classification alias.
+     * @return The string of classification alias. (NullAllowed: when the column value is null)
+     */
+    public String getPaymentMethodCodeAlias() {
+        CDef.PaymentMethod cdef = getPaymentMethodCodeAsPaymentMethod();
+        return cdef != null ? cdef.alias() : null;
     }
 
     // ===================================================================================
@@ -260,7 +379,7 @@ public abstract class BsPurchasePayment extends AbstractEntity implements Domain
     }
 
     /**
-     * [get] PAYMENT_METHOD_CODE: {NotNull, CHAR(3)} <br>
+     * [get] PAYMENT_METHOD_CODE: {NotNull, CHAR(3), classification=PaymentMethod} <br>
      * 支払方法コード: 手渡しや銀行振込など
      * @return The value of the column 'PAYMENT_METHOD_CODE'. (basically NotNull if selected: for the constraint)
      */
@@ -270,11 +389,12 @@ public abstract class BsPurchasePayment extends AbstractEntity implements Domain
     }
 
     /**
-     * [set] PAYMENT_METHOD_CODE: {NotNull, CHAR(3)} <br>
+     * [set] PAYMENT_METHOD_CODE: {NotNull, CHAR(3), classification=PaymentMethod} <br>
      * 支払方法コード: 手渡しや銀行振込など
      * @param paymentMethodCode The value of the column 'PAYMENT_METHOD_CODE'. (basically NotNull if update: for the constraint)
      */
-    public void setPaymentMethodCode(String paymentMethodCode) {
+    protected void setPaymentMethodCode(String paymentMethodCode) {
+        checkClassificationCode("PAYMENT_METHOD_CODE", CDef.DefMeta.PaymentMethod, paymentMethodCode);
         registerModifiedProperty("paymentMethodCode");
         _paymentMethodCode = paymentMethodCode;
     }
@@ -349,5 +469,13 @@ public abstract class BsPurchasePayment extends AbstractEntity implements Domain
     public void setUpdateUser(String updateUser) {
         registerModifiedProperty("updateUser");
         _updateUser = updateUser;
+    }
+
+    /**
+     * For framework so basically DON'T use this method.
+     * @param paymentMethodCode The value of the column 'PAYMENT_METHOD_CODE'. (basically NotNull if update: for the constraint)
+     */
+    public void mynativeMappingPaymentMethodCode(String paymentMethodCode) {
+        setPaymentMethodCode(paymentMethodCode);
     }
 }

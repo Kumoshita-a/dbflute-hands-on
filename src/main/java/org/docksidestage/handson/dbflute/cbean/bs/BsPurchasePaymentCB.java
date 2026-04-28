@@ -338,7 +338,7 @@ public class BsPurchasePaymentCB extends AbstractConditionBean {
          */
         public SpecifiedColumn columnPaymentDatetime() { return doColumn("PAYMENT_DATETIME"); }
         /**
-         * PAYMENT_METHOD_CODE: {NotNull, CHAR(3)}
+         * PAYMENT_METHOD_CODE: {NotNull, CHAR(3), classification=PaymentMethod}
          * @return The information object of specified column. (NotNull)
          */
         public SpecifiedColumn columnPaymentMethodCode() { return doColumn("PAYMENT_METHOD_CODE"); }

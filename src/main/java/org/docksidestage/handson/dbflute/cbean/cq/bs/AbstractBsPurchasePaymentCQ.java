@@ -483,11 +483,45 @@ public abstract class AbstractBsPurchasePaymentCQ extends AbstractConditionQuery
 
     /**
      * Equal(=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
-     * PAYMENT_METHOD_CODE: {NotNull, CHAR(3)}
+     * PAYMENT_METHOD_CODE: {NotNull, CHAR(3), classification=PaymentMethod}
      * @param paymentMethodCode The value of paymentMethodCode as equal. (basically NotNull, NotEmpty: error as default, or no condition as option)
      */
-    public void setPaymentMethodCode_Equal(String paymentMethodCode) {
+    protected void setPaymentMethodCode_Equal(String paymentMethodCode) {
         doSetPaymentMethodCode_Equal(fRES(paymentMethodCode));
+    }
+
+    /**
+     * Equal(=). As PaymentMethod. And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
+     * PAYMENT_METHOD_CODE: {NotNull, CHAR(3), classification=PaymentMethod} <br>
+     * 支払方法
+     * @param cdef The instance of classification definition (as ENUM type). (basically NotNull: error as default, or no condition as option)
+     */
+    public void setPaymentMethodCode_Equal_AsPaymentMethod(CDef.PaymentMethod cdef) {
+        doSetPaymentMethodCode_Equal(cdef != null ? cdef.code() : null);
+    }
+
+    /**
+     * Equal(=). As ByHand (HAN). And OnlyOnceRegistered. <br>
+     * 手渡し: Face-to-Faceの手渡しで商品と交換
+     */
+    public void setPaymentMethodCode_Equal_ByHand() {
+        setPaymentMethodCode_Equal_AsPaymentMethod(CDef.PaymentMethod.ByHand);
+    }
+
+    /**
+     * Equal(=). As BankTransfer (BAK). And OnlyOnceRegistered. <br>
+     * 銀行振込: 銀行振込で確認してから商品発送
+     */
+    public void setPaymentMethodCode_Equal_BankTransfer() {
+        setPaymentMethodCode_Equal_AsPaymentMethod(CDef.PaymentMethod.BankTransfer);
+    }
+
+    /**
+     * Equal(=). As CreditCard (CRC). And OnlyOnceRegistered. <br>
+     * クレジットカード: クレジットカードの番号を教えてもらう
+     */
+    public void setPaymentMethodCode_Equal_CreditCard() {
+        setPaymentMethodCode_Equal_AsPaymentMethod(CDef.PaymentMethod.CreditCard);
     }
 
     protected void doSetPaymentMethodCode_Equal(String paymentMethodCode) {
@@ -496,11 +530,45 @@ public abstract class AbstractBsPurchasePaymentCQ extends AbstractConditionQuery
 
     /**
      * NotEqual(&lt;&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
-     * PAYMENT_METHOD_CODE: {NotNull, CHAR(3)}
+     * PAYMENT_METHOD_CODE: {NotNull, CHAR(3), classification=PaymentMethod}
      * @param paymentMethodCode The value of paymentMethodCode as notEqual. (basically NotNull, NotEmpty: error as default, or no condition as option)
      */
-    public void setPaymentMethodCode_NotEqual(String paymentMethodCode) {
+    protected void setPaymentMethodCode_NotEqual(String paymentMethodCode) {
         doSetPaymentMethodCode_NotEqual(fRES(paymentMethodCode));
+    }
+
+    /**
+     * NotEqual(&lt;&gt;). As PaymentMethod. And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
+     * PAYMENT_METHOD_CODE: {NotNull, CHAR(3), classification=PaymentMethod} <br>
+     * 支払方法
+     * @param cdef The instance of classification definition (as ENUM type). (basically NotNull: error as default, or no condition as option)
+     */
+    public void setPaymentMethodCode_NotEqual_AsPaymentMethod(CDef.PaymentMethod cdef) {
+        doSetPaymentMethodCode_NotEqual(cdef != null ? cdef.code() : null);
+    }
+
+    /**
+     * NotEqual(&lt;&gt;). As ByHand (HAN). And OnlyOnceRegistered. <br>
+     * 手渡し: Face-to-Faceの手渡しで商品と交換
+     */
+    public void setPaymentMethodCode_NotEqual_ByHand() {
+        setPaymentMethodCode_NotEqual_AsPaymentMethod(CDef.PaymentMethod.ByHand);
+    }
+
+    /**
+     * NotEqual(&lt;&gt;). As BankTransfer (BAK). And OnlyOnceRegistered. <br>
+     * 銀行振込: 銀行振込で確認してから商品発送
+     */
+    public void setPaymentMethodCode_NotEqual_BankTransfer() {
+        setPaymentMethodCode_NotEqual_AsPaymentMethod(CDef.PaymentMethod.BankTransfer);
+    }
+
+    /**
+     * NotEqual(&lt;&gt;). As CreditCard (CRC). And OnlyOnceRegistered. <br>
+     * クレジットカード: クレジットカードの番号を教えてもらう
+     */
+    public void setPaymentMethodCode_NotEqual_CreditCard() {
+        setPaymentMethodCode_NotEqual_AsPaymentMethod(CDef.PaymentMethod.CreditCard);
     }
 
     protected void doSetPaymentMethodCode_NotEqual(String paymentMethodCode) {
@@ -508,48 +576,32 @@ public abstract class AbstractBsPurchasePaymentCQ extends AbstractConditionQuery
     }
 
     /**
-     * GreaterThan(&gt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
-     * PAYMENT_METHOD_CODE: {NotNull, CHAR(3)}
-     * @param paymentMethodCode The value of paymentMethodCode as greaterThan. (basically NotNull, NotEmpty: error as default, or no condition as option)
-     */
-    public void setPaymentMethodCode_GreaterThan(String paymentMethodCode) {
-        regPaymentMethodCode(CK_GT, fRES(paymentMethodCode));
-    }
-
-    /**
-     * LessThan(&lt;). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
-     * PAYMENT_METHOD_CODE: {NotNull, CHAR(3)}
-     * @param paymentMethodCode The value of paymentMethodCode as lessThan. (basically NotNull, NotEmpty: error as default, or no condition as option)
-     */
-    public void setPaymentMethodCode_LessThan(String paymentMethodCode) {
-        regPaymentMethodCode(CK_LT, fRES(paymentMethodCode));
-    }
-
-    /**
-     * GreaterEqual(&gt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
-     * PAYMENT_METHOD_CODE: {NotNull, CHAR(3)}
-     * @param paymentMethodCode The value of paymentMethodCode as greaterEqual. (basically NotNull, NotEmpty: error as default, or no condition as option)
-     */
-    public void setPaymentMethodCode_GreaterEqual(String paymentMethodCode) {
-        regPaymentMethodCode(CK_GE, fRES(paymentMethodCode));
-    }
-
-    /**
-     * LessEqual(&lt;=). And NullOrEmptyIgnored, OnlyOnceRegistered. <br>
-     * PAYMENT_METHOD_CODE: {NotNull, CHAR(3)}
-     * @param paymentMethodCode The value of paymentMethodCode as lessEqual. (basically NotNull, NotEmpty: error as default, or no condition as option)
-     */
-    public void setPaymentMethodCode_LessEqual(String paymentMethodCode) {
-        regPaymentMethodCode(CK_LE, fRES(paymentMethodCode));
-    }
-
-    /**
      * InScope {in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br>
-     * PAYMENT_METHOD_CODE: {NotNull, CHAR(3)}
+     * PAYMENT_METHOD_CODE: {NotNull, CHAR(3), classification=PaymentMethod}
      * @param paymentMethodCodeList The collection of paymentMethodCode as inScope. (basically NotNull, NotEmpty: error as default, or no condition as option)
      */
-    public void setPaymentMethodCode_InScope(Collection<String> paymentMethodCodeList) {
+    protected void setPaymentMethodCode_InScope(Collection<String> paymentMethodCodeList) {
         doSetPaymentMethodCode_InScope(paymentMethodCodeList);
+    }
+
+    /**
+     * InScope {in ('a', 'b')}. As PaymentMethod. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br>
+     * PAYMENT_METHOD_CODE: {NotNull, CHAR(3), classification=PaymentMethod} <br>
+     * 支払方法
+     * @param cdefList The list of classification definition (as ENUM type). (basically NotNull, NotEmpty: error as default, or no condition as option)
+     */
+    public void setPaymentMethodCode_InScope_AsPaymentMethod(Collection<CDef.PaymentMethod> cdefList) {
+        doSetPaymentMethodCode_InScope(cTStrL(cdefList));
+    }
+
+    /**
+     * InScope {in ('a', 'b')}. As PaymentMethod. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br>
+     * 支払方法 <br>
+     * 最も推奨されている方法 <br>
+     * The group elements:[ByHand]
+     */
+    public void setPaymentMethodCode_InScope_Recommended() {
+        setPaymentMethodCode_InScope_AsPaymentMethod(CDef.PaymentMethod.listOfRecommended());
     }
 
     protected void doSetPaymentMethodCode_InScope(Collection<String> paymentMethodCodeList) {
@@ -558,59 +610,25 @@ public abstract class AbstractBsPurchasePaymentCQ extends AbstractConditionQuery
 
     /**
      * NotInScope {not in ('a', 'b')}. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br>
-     * PAYMENT_METHOD_CODE: {NotNull, CHAR(3)}
+     * PAYMENT_METHOD_CODE: {NotNull, CHAR(3), classification=PaymentMethod}
      * @param paymentMethodCodeList The collection of paymentMethodCode as notInScope. (basically NotNull, NotEmpty: error as default, or no condition as option)
      */
-    public void setPaymentMethodCode_NotInScope(Collection<String> paymentMethodCodeList) {
+    protected void setPaymentMethodCode_NotInScope(Collection<String> paymentMethodCodeList) {
         doSetPaymentMethodCode_NotInScope(paymentMethodCodeList);
+    }
+
+    /**
+     * NotInScope {not in ('a', 'b')}. As PaymentMethod. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br>
+     * PAYMENT_METHOD_CODE: {NotNull, CHAR(3), classification=PaymentMethod} <br>
+     * 支払方法
+     * @param cdefList The list of classification definition (as ENUM type). (basically NotNull, NotEmpty: error as default, or no condition as option)
+     */
+    public void setPaymentMethodCode_NotInScope_AsPaymentMethod(Collection<CDef.PaymentMethod> cdefList) {
+        doSetPaymentMethodCode_NotInScope(cTStrL(cdefList));
     }
 
     protected void doSetPaymentMethodCode_NotInScope(Collection<String> paymentMethodCodeList) {
         regINS(CK_NINS, cTL(paymentMethodCodeList), xgetCValuePaymentMethodCode(), "PAYMENT_METHOD_CODE");
-    }
-
-    /**
-     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br>
-     * PAYMENT_METHOD_CODE: {NotNull, CHAR(3)} <br>
-     * <pre>e.g. setPaymentMethodCode_LikeSearch("xxx", op <span style="color: #90226C; font-weight: bold"><span style="font-size: 120%">-</span>&gt;</span> op.<span style="color: #CC4747">likeContain()</span>);</pre>
-     * @param paymentMethodCode The value of paymentMethodCode as likeSearch. (basically NotNull, NotEmpty: error as default, or no condition as option)
-     * @param opLambda The callback for option of like-search. (NotNull)
-     */
-    public void setPaymentMethodCode_LikeSearch(String paymentMethodCode, ConditionOptionCall<LikeSearchOption> opLambda) {
-        setPaymentMethodCode_LikeSearch(paymentMethodCode, xcLSOP(opLambda));
-    }
-
-    /**
-     * LikeSearch with various options. (versatile) {like '%xxx%' escape ...}. And NullOrEmptyIgnored, SeveralRegistered. <br>
-     * PAYMENT_METHOD_CODE: {NotNull, CHAR(3)} <br>
-     * <pre>e.g. setPaymentMethodCode_LikeSearch("xxx", new <span style="color: #CC4747">LikeSearchOption</span>().likeContain());</pre>
-     * @param paymentMethodCode The value of paymentMethodCode as likeSearch. (basically NotNull, NotEmpty: error as default, or no condition as option)
-     * @param likeSearchOption The option of like-search. (NotNull)
-     */
-    protected void setPaymentMethodCode_LikeSearch(String paymentMethodCode, LikeSearchOption likeSearchOption) {
-        regLSQ(CK_LS, fRES(paymentMethodCode), xgetCValuePaymentMethodCode(), "PAYMENT_METHOD_CODE", likeSearchOption);
-    }
-
-    /**
-     * NotLikeSearch with various options. (versatile) {not like 'xxx%' escape ...} <br>
-     * And NullOrEmptyIgnored, SeveralRegistered. <br>
-     * PAYMENT_METHOD_CODE: {NotNull, CHAR(3)}
-     * @param paymentMethodCode The value of paymentMethodCode as notLikeSearch. (basically NotNull, NotEmpty: error as default, or no condition as option)
-     * @param opLambda The callback for option of like-search. (NotNull)
-     */
-    public void setPaymentMethodCode_NotLikeSearch(String paymentMethodCode, ConditionOptionCall<LikeSearchOption> opLambda) {
-        setPaymentMethodCode_NotLikeSearch(paymentMethodCode, xcLSOP(opLambda));
-    }
-
-    /**
-     * NotLikeSearch with various options. (versatile) {not like 'xxx%' escape ...} <br>
-     * And NullOrEmptyIgnored, SeveralRegistered. <br>
-     * PAYMENT_METHOD_CODE: {NotNull, CHAR(3)}
-     * @param paymentMethodCode The value of paymentMethodCode as notLikeSearch. (basically NotNull, NotEmpty: error as default, or no condition as option)
-     * @param likeSearchOption The option of not-like-search. (NotNull)
-     */
-    protected void setPaymentMethodCode_NotLikeSearch(String paymentMethodCode, LikeSearchOption likeSearchOption) {
-        regLSQ(CK_NLS, fRES(paymentMethodCode), xgetCValuePaymentMethodCode(), "PAYMENT_METHOD_CODE", likeSearchOption);
     }
 
     protected void regPaymentMethodCode(ConditionKey ky, Object vl) { regQ(ky, vl, xgetCValuePaymentMethodCode(), "PAYMENT_METHOD_CODE"); }

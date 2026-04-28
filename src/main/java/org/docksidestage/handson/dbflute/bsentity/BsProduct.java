@@ -9,6 +9,7 @@ import org.dbflute.dbmeta.AbstractEntity;
 import org.dbflute.dbmeta.accessory.DomainEntity;
 import org.dbflute.optional.OptionalEntity;
 import org.docksidestage.handson.dbflute.allcommon.DBMetaInstanceHandler;
+import org.docksidestage.handson.dbflute.allcommon.CDef;
 import org.docksidestage.handson.dbflute.exentity.*;
 
 /**
@@ -39,7 +40,7 @@ public abstract class BsProduct extends AbstractEntity implements DomainEntity {
     /** PRODUCT_CATEGORY_CODE: {IX, NotNull, CHAR(3), FK to product_category} */
     protected String _productCategoryCode;
 
-    /** PRODUCT_STATUS_CODE: {IX, NotNull, CHAR(3), FK to product_status} */
+    /** PRODUCT_STATUS_CODE: {IX, NotNull, CHAR(3), FK to product_status, classification=ProductStatus} */
     protected String _productStatusCode;
 
     /** REGULAR_PRICE: {INT(10)} */
@@ -91,6 +92,93 @@ public abstract class BsProduct extends AbstractEntity implements DomainEntity {
         __uniqueDrivenProperties.clear();
         __uniqueDrivenProperties.addPropertyName("productHandleCode");
         setProductHandleCode(productHandleCode);
+    }
+
+    // ===================================================================================
+    //                                                             Classification Property
+    //                                                             =======================
+    /**
+     * Get the value of productStatusCode as the classification of ProductStatus. <br>
+     * PRODUCT_STATUS_CODE: {IX, NotNull, CHAR(3), FK to product_status, classification=ProductStatus} <br>
+     * 商品ステータス。あんまり面白みのないステータス
+     * <p>It's treated as case insensitive and if the code value is null, it returns null.</p>
+     * @return The instance of classification definition (as ENUM type). (NullAllowed: when the column value is null)
+     */
+    public CDef.ProductStatus getProductStatusCodeAsProductStatus() {
+        return CDef.ProductStatus.of(getProductStatusCode()).orElse(null);
+    }
+
+    /**
+     * Set the value of productStatusCode as the classification of ProductStatus. <br>
+     * PRODUCT_STATUS_CODE: {IX, NotNull, CHAR(3), FK to product_status, classification=ProductStatus} <br>
+     * 商品ステータス。あんまり面白みのないステータス
+     * @param cdef The instance of classification definition (as ENUM type). (NullAllowed: if null, null value is set to the column)
+     */
+    public void setProductStatusCodeAsProductStatus(CDef.ProductStatus cdef) {
+        setProductStatusCode(cdef != null ? cdef.code() : null);
+    }
+
+    // ===================================================================================
+    //                                                              Classification Setting
+    //                                                              ======================
+    /**
+     * Set the value of productStatusCode as 生産販売可能 (ONS). <br>
+     * 生産販売可能
+     */
+    public void setProductStatusCode_生産販売可能() {
+        setProductStatusCodeAsProductStatus(CDef.ProductStatus.生産販売可能);
+    }
+
+    /**
+     * Set the value of productStatusCode as 生産中止 (PST). <br>
+     * 生産中止
+     */
+    public void setProductStatusCode_生産中止() {
+        setProductStatusCodeAsProductStatus(CDef.ProductStatus.生産中止);
+    }
+
+    /**
+     * Set the value of productStatusCode as 販売中止 (SST). <br>
+     * 販売中止
+     */
+    public void setProductStatusCode_販売中止() {
+        setProductStatusCodeAsProductStatus(CDef.ProductStatus.販売中止);
+    }
+
+    // ===================================================================================
+    //                                                        Classification Determination
+    //                                                        ============================
+    /**
+     * Is the value of productStatusCode 生産販売可能? <br>
+     * 生産販売可能
+     * <p>It's treated as case insensitive and if the code value is null, it returns false.</p>
+     * @return The determination, true or false.
+     */
+    public boolean isProductStatusCode生産販売可能() {
+        CDef.ProductStatus cdef = getProductStatusCodeAsProductStatus();
+        return cdef != null ? cdef.equals(CDef.ProductStatus.生産販売可能) : false;
+    }
+
+    /**
+     * Is the value of productStatusCode 生産中止? <br>
+     * 生産中止
+     * <p>It's treated as case insensitive and if the code value is null, it returns false.</p>
+     * @return The determination, true or false.
+     */
+    public boolean isProductStatusCode生産中止() {
+        CDef.ProductStatus cdef = getProductStatusCodeAsProductStatus();
+        return cdef != null ? cdef.equals(CDef.ProductStatus.生産中止) : false;
+    }
+
+    /**
+     * Is the value of productStatusCode 販売中止? <br>
+     * 販売中止
+     * <p>It's treated as case insensitive and if the code value is null, it returns false.</p>
+     * @return The determination, true or false.
+     */
+    public boolean isProductStatusCode販売中止() {
+        CDef.ProductStatus cdef = getProductStatusCodeAsProductStatus();
+        return cdef != null ? cdef.equals(CDef.ProductStatus.販売中止) : false;
     }
 
     // ===================================================================================
@@ -323,7 +411,7 @@ public abstract class BsProduct extends AbstractEntity implements DomainEntity {
     }
 
     /**
-     * [get] PRODUCT_STATUS_CODE: {IX, NotNull, CHAR(3), FK to product_status} <br>
+     * [get] PRODUCT_STATUS_CODE: {IX, NotNull, CHAR(3), FK to product_status, classification=ProductStatus} <br>
      * @return The value of the column 'PRODUCT_STATUS_CODE'. (basically NotNull if selected: for the constraint)
      */
     public String getProductStatusCode() {
@@ -332,10 +420,11 @@ public abstract class BsProduct extends AbstractEntity implements DomainEntity {
     }
 
     /**
-     * [set] PRODUCT_STATUS_CODE: {IX, NotNull, CHAR(3), FK to product_status} <br>
+     * [set] PRODUCT_STATUS_CODE: {IX, NotNull, CHAR(3), FK to product_status, classification=ProductStatus} <br>
      * @param productStatusCode The value of the column 'PRODUCT_STATUS_CODE'. (basically NotNull if update: for the constraint)
      */
-    public void setProductStatusCode(String productStatusCode) {
+    protected void setProductStatusCode(String productStatusCode) {
+        checkClassificationCode("PRODUCT_STATUS_CODE", CDef.DefMeta.ProductStatus, productStatusCode);
         registerModifiedProperty("productStatusCode");
         _productStatusCode = productStatusCode;
     }
@@ -448,5 +537,13 @@ public abstract class BsProduct extends AbstractEntity implements DomainEntity {
     public void setVersionNo(Long versionNo) {
         registerModifiedProperty("versionNo");
         _versionNo = versionNo;
+    }
+
+    /**
+     * For framework so basically DON'T use this method.
+     * @param productStatusCode The value of the column 'PRODUCT_STATUS_CODE'. (basically NotNull if update: for the constraint)
+     */
+    public void mynativeMappingProductStatusCode(String productStatusCode) {
+        setProductStatusCode(productStatusCode);
     }
 }

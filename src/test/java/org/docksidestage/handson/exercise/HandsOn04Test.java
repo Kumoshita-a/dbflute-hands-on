@@ -1,5 +1,8 @@
 package org.docksidestage.handson.exercise;
 
+import java.util.Arrays;
+import java.util.List;
+
 import javax.annotation.Resource;
 
 import org.dbflute.cbean.result.ListResultBean;
@@ -7,8 +10,12 @@ import org.docksidestage.handson.dbflute.allcommon.CDef;
 import org.docksidestage.handson.dbflute.exbhv.MemberBhv;
 import org.docksidestage.handson.dbflute.exbhv.PurchaseBhv;
 import org.docksidestage.handson.dbflute.exentity.Member;
+import org.docksidestage.handson.dbflute.exentity.MemberStatus;
+import org.docksidestage.handson.dbflute.exentity.MemberWithdrawal;
 import org.docksidestage.handson.dbflute.exentity.Product;
+import org.docksidestage.handson.dbflute.exentity.ProductStatus;
 import org.docksidestage.handson.dbflute.exentity.Purchase;
+import org.docksidestage.handson.dbflute.exentity.WithdrawalReason;
 import org.docksidestage.handson.unit.UnitContainerTestCase;
 
 /**
@@ -93,5 +100,203 @@ public class HandsOn04Test extends UnitContainerTestCase {
         }
         assertTrue(foundWithdrawal);
         assertTrue(foundNonWithdrawal);
+    }
+
+    // ===================================================================================
+    //                                                                       区分値メソッドを使って実装
+    //                                                                       ====================
+    /**
+     * 一番若い仮会員の会員を検索
+     */
+    public void test_searchMember_youngestProvisional() throws Exception {
+        // ## Arrange ##
+
+        // ## Act ##
+        Member member = memberBhv.selectEntity(cb -> {
+            cb.setupSelect_MemberStatus();
+            cb.query().setMemberStatusCode_Equal_仮会員();
+            cb.query().setBirthdate_IsNotNull();
+            cb.query().addOrderBy_Birthdate_Desc();
+            cb.fetchFirst(1);
+        }).get();
+
+        // ## Assert ##
+        MemberStatus status = member.getMemberStatus().get();
+        log("会員名称: {}, 生年月日: {}, ステータス名称: {}", member.getMemberName(), member.getBirthdate(), status.getMemberStatusName());
+        assertTrue(member.isMemberStatusCode仮会員());
+    }
+
+    /**
+     * 支払済みの購入の中で一番若い正式会員のものだけ検索
+     */
+    public void test_searchPurchase_paid_byYoungestFormalizedMember() throws Exception {
+        // ## Arrange ##
+
+        // ## Act ##
+        ListResultBean<Purchase> purchaseList = purchaseBhv.selectList(cb -> {
+            cb.setupSelect_Member().withMemberStatus();
+            cb.query().setPaymentCompleteFlg_Equal_True();
+            cb.query().queryMember().setMemberStatusCode_Equal_正式会員();
+            cb.query().queryMember().scalar_Equal().max(memberCB -> {
+                memberCB.specify().columnBirthdate();
+                memberCB.query().setMemberStatusCode_Equal_正式会員();
+                memberCB.query().existsPurchase(pCB -> pCB.query().setPaymentCompleteFlg_Equal_True());
+            });
+            cb.query().addOrderBy_PurchaseDatetime_Desc();
+        });
+
+        // ## Assert ##
+        assertHasAnyElement(purchaseList);
+        Integer firstMemberId = purchaseList.get(0).getMemberId();
+        for (Purchase purchase : purchaseList) {
+            Member member = purchase.getMember().get();
+            MemberStatus status = member.getMemberStatus().get();
+            log("会員名称: {}, 生年月日: {}, ステータス名称: {}, 購入日時: {}", member.getMemberName(), member.getBirthdate(),
+                    status.getMemberStatusName(), purchase.getPurchaseDatetime());
+            assertTrue(member.isMemberStatusCode正式会員());
+            // 「一番若い正式会員のものだけ」 → 全件同じ会員
+            assertEquals(firstMemberId, purchase.getMemberId());
+        }
+    }
+
+    /**
+     * 生産販売可能な商品の購入を検索
+     */
+    public void test_searchPurchase_byOnSaleProductionProduct() throws Exception {
+        // ## Arrange ##
+
+        // ## Act ##
+        ListResultBean<Purchase> purchaseList = purchaseBhv.selectList(cb -> {
+            cb.setupSelect_Product().withProductStatus();
+            cb.setupSelect_Member().withMemberWithdrawalAsOne().withWithdrawalReason();
+            cb.query().queryProduct().setProductStatusCode_Equal_生産販売可能();
+            cb.query().addOrderBy_PurchasePrice_Desc();
+        });
+
+        // ## Assert ##
+        assertHasAnyElement(purchaseList);
+        for (Purchase purchase : purchaseList) {
+            Product product = purchase.getProduct().get();
+            ProductStatus productStatus = product.getProductStatus().get();
+            String withdrawalReasonText = purchase.getMember()
+                    .flatMap(Member::getMemberWithdrawalAsOne)
+                    .flatMap(MemberWithdrawal::getWithdrawalReason)
+                    .map(WithdrawalReason::getWithdrawalReasonText)
+                    .orElse("none");
+            log("商品名: {}, 商品ステータス名称: {}, 購入価格: {}, 退会理由: {}", product.getProductName(),
+                    productStatus.getProductStatusName(), purchase.getPurchasePrice(), withdrawalReasonText);
+            assertTrue(product.isProductStatusCode生産販売可能());
+        }
+    }
+
+    /**
+     * 正式会員と退会会員の会員を検索
+     */
+    public void test_searchMember_formalAndWithdrawal_changeEntityOnly() throws Exception {
+        // ## Arrange ##
+
+        // ## Act ##
+        ListResultBean<Member> memberList = memberBhv.selectList(cb -> {
+            cb.setupSelect_MemberStatus();
+            cb.query().setMemberStatusCode_InScope_AsMemberStatus(
+                    Arrays.asList(CDef.MemberStatus.正式会員, CDef.MemberStatus.退会会員));
+            cb.query().queryMemberStatus().addOrderBy_DisplayOrder_Asc();
+            cb.query().addOrderBy_MemberId_Asc();
+        });
+
+        // ## Assert ##
+        assertHasAnyElement(memberList);
+        boolean foundFormalized = false;
+        boolean foundWithdrawal = false;
+        for (Member member : memberList) {
+            log("会員名称: {}, ステータス: {}", member.getMemberName(), member.getMemberStatus().get().getMemberStatusName());
+            assertTrue(member.isMemberStatusCode正式会員() || member.isMemberStatusCode退会会員());
+            if (member.isMemberStatusCode正式会員()) {
+                foundFormalized = true;
+            }
+            if (member.isMemberStatusCode退会会員()) {
+                foundWithdrawal = true;
+            }
+        }
+        assertTrue(foundFormalized);
+        assertTrue(foundWithdrawal);
+
+        // Entity 上だけで正式会員→退会会員に変更
+        Member target = memberList.stream()
+                .filter(Member::isMemberStatusCode正式会員)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("正式会員が含まれていない"));
+        Integer targetId = target.getMemberId();
+        target.setMemberStatusCodeAsMemberStatus(CDef.MemberStatus.退会会員);
+        assertTrue(target.isMemberStatusCode退会会員());
+
+        // DB 上は変更されていないこと
+        Member fromDb = memberBhv.selectByPK(targetId).get();
+        assertTrue(fromDb.isMemberStatusCode正式会員());
+    }
+
+    /**
+     * 銀行振込で購入を支払ったことのある、会員ステータスごとに一番若い会員を検索
+     */
+    public void test_searchMember_youngestPerStatus_paidByBankTransfer() throws Exception {
+        // ## Arrange ##
+
+        // ## Act ##
+        ListResultBean<Member> memberList = memberBhv.selectList(cb -> {
+            cb.setupSelect_MemberStatus();
+            cb.query().existsPurchase(pCB -> {
+                pCB.query().existsPurchasePayment(ppCB -> ppCB.query().setPaymentMethodCode_Equal_BankTransfer());
+            });
+            cb.query().setBirthdate_IsNotNull();
+            cb.query().scalar_Equal().max(memberCB -> {
+                memberCB.specify().columnBirthdate();
+                memberCB.query().existsPurchase(pCB -> {
+                    pCB.query().existsPurchasePayment(ppCB -> ppCB.query().setPaymentMethodCode_Equal_BankTransfer());
+                });
+            }).partitionBy(scalarCB -> scalarCB.specify().columnMemberStatusCode());
+            cb.query().queryMemberStatus().addOrderBy_DisplayOrder_Asc();
+        });
+
+        // ## Assert ##
+        for (Member member : memberList) {
+            log("会員名称: {}, ステータス: {}, 生年月日: {}", member.getMemberName(),
+                    member.getMemberStatus().get().getMemberStatusName(), member.getBirthdate());
+        }
+        // 想定: 銀行振込実績ありステータス分の会員が取れる (3 ステータス想定だが実データ次第なので 1 以上（空でないこと）をアサート)
+        assertTrue(!memberList.isEmpty());
+        // ステータスごとに 1 名であることも確認
+        List<String> statusCodes = memberList.stream().map(Member::getMemberStatusCode).distinct().collect(java.util.stream.Collectors.toList());
+        assertEquals(statusCodes.size(), memberList.size());
+    }
+
+    /**
+     * 銀行振込で購入を支払ったことのある、会員ステータスごとに一番若い会員を検索 (ArrangeQuery 版)
+     * <p>
+     * MemberCQ#arrangePaidByBankTransfer() で「銀行振込で購入を支払った」条件を再利用。
+     * </p>
+     */
+    public void test_searchMember_youngestPerStatus_paidByBankTransfer_arrangeQuery() throws Exception {
+        // ## Arrange ##
+
+        // ## Act ##
+        ListResultBean<Member> memberList = memberBhv.selectList(cb -> {
+            cb.setupSelect_MemberStatus();
+            cb.query().arrangePaidByBankTransfer();
+            cb.query().setBirthdate_IsNotNull();
+            cb.query().scalar_Equal().max(memberCB -> {
+                memberCB.specify().columnBirthdate();
+                memberCB.query().arrangePaidByBankTransfer();
+            }).partitionBy(scalarCB -> scalarCB.specify().columnMemberStatusCode());
+            cb.query().queryMemberStatus().addOrderBy_DisplayOrder_Asc();
+        });
+
+        // ## Assert ##
+        for (Member member : memberList) {
+            log("会員名称: {}, ステータス: {}, 生年月日: {}", member.getMemberName(),
+                    member.getMemberStatus().get().getMemberStatusName(), member.getBirthdate());
+        }
+        assertTrue(!memberList.isEmpty());
+        List<String> statusCodes = memberList.stream().map(Member::getMemberStatusCode).distinct().collect(java.util.stream.Collectors.toList());
+        assertEquals(statusCodes.size(), memberList.size());
     }
 }
