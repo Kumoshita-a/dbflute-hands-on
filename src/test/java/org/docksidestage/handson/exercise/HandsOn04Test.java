@@ -151,8 +151,8 @@ public class HandsOn04Test extends UnitContainerTestCase {
             cb.query().queryMember().scalar_Equal().max(memberCB -> {
                 memberCB.specify().columnBirthdate();
                 memberCB.query().setMemberStatusCode_Equal_正式会員();
-                // TODO done kumoshita 慣習として、pCB ではなく、purchaseCB (テーブルのキーワード) by jflute (2026/04/28)
-                // TODO done kumoshita 慣習として、関連テーブルのLambdaは、blockスタイルのLambdaで by jflute (2026/04/28)
+                // done kumoshita 慣習として、pCB ではなく、purchaseCB (テーブルのキーワード) by jflute (2026/04/28)
+                // done kumoshita 慣習として、関連テーブルのLambdaは、blockスタイルのLambdaで by jflute (2026/04/28)
                 memberCB.query().existsPurchase(purchaseCB -> {
                     purchaseCB.query().setPaymentCompleteFlg_Equal_True();
                 });
@@ -278,7 +278,7 @@ public class HandsOn04Test extends UnitContainerTestCase {
         // LazyLoadは、n+1問題を発生させやすい機能である。
     }
 
-    // TODO jflute 次回1on1, ArrangeQueryのお話 (2026/04/28)
+    // done jflute 次回1on1, ArrangeQueryのお話 (2026/04/28)
     /**
      * 銀行振込で購入を支払ったことのある、会員ステータスごとに一番若い会員を検索
      */
@@ -291,7 +291,8 @@ public class HandsOn04Test extends UnitContainerTestCase {
             cb.query().existsPurchase(purchaseCB -> {
                 purchaseCB.query().existsPurchasePayment(purchasePaymentCB -> purchasePaymentCB.query().setPaymentMethodCode_Equal_BankTransfer());
             });
-            cb.query().setBirthdate_IsNotNull();
+            // #1on1: これはなくても結果変わらない (2026/05/12)
+            //cb.query().setBirthdate_IsNotNull();
             cb.query().scalar_Equal().max(memberCB -> {
                 memberCB.specify().columnBirthdate();
                 memberCB.query().existsPurchase(purchaseCB -> {
@@ -313,8 +314,35 @@ public class HandsOn04Test extends UnitContainerTestCase {
         // 想定: 銀行振込実績ありステータス分の会員が取れる (3 ステータス想定だが実データ次第なので 1 以上（空でないこと）をアサート)
         assertTrue(!memberList.isEmpty());
         // ステータスごとに 1 名であることも確認
+        // TODO kumoshita これはこれでmemberListの構造をチェックしているのはGood... by jflute (2026/05/12)
+        // ただ、期待値をActの成果物(memberList)から求めても少し動作確認の精度として弱いので、
+        // Actと無関係に期待値を求めてアサートしたいところ。
         List<String> statusCodes = memberList.stream().map(Member::getMemberStatusCode).distinct().collect(java.util.stream.Collectors.toList());
         assertEquals(statusCodes.size(), memberList.size());
+        // #1on1: UnitTestの期待値をどう求めるか？連動性 (変化への対応) をどこまでやりきるか？ (2026/05/12)
+        // 現場によっては、3と入れましょうな現場もある。
+        // 逆に、もう少し連動性を持って、ある程度の変化が起きてもアサートが壊れないようにしましょうな現場もある。
+        //
+        // 今の現場では？ → 固定値を指定する → 人間がもう頭の中で期待値を導出している
+        //
+        // 固定値を指定:
+        // o よほど複雑じゃなければ頭の中で期待値がすぐ求めるので書くのは楽
+        // o 変化に弱い (間接的な変化でも修正の必要が出てきたり) // テストは変化に強い必要性がない？
+        // o 可読性: なんの値？になる？...一方で、時には直感的になることも
+        //   → 3じゃなくて、statusDistinctCountみたいな名前で工夫？
+        //   → "正式会員" は意味がわかる。3は意味がわからん。
+        //
+        // プログラムで導出:
+        // o 書くのは大変
+        // o 変化に強い
+        // o 可読性: プログラムでストーリーがわかる、一方で、プログラムを読まないといけない (視認性は悪い!?)
+        // o 期待値の導出でバグが入る可能性がある (キリがない問題、テストのテストは？)
+        //
+        // ↑の二つ、グラデーションになる。
+        //
+        // テストは変化に強い必要性がない？
+        // → jfluteの経験上、あまりに変化に弱くて影響が大きいと、落ちたテストを放置し始める
+        // → E2Eも似た話、もっと大変かも
     }
 
     /**
@@ -327,6 +355,8 @@ public class HandsOn04Test extends UnitContainerTestCase {
         // ## Arrange ##
 
         // ## Act ##
+        // #1on1 ArrangeQueryのコンセプト (2026/05/12)
+        // 現場での活用のされ方。
         ListResultBean<Member> memberList = memberBhv.selectList(cb -> {
             cb.setupSelect_MemberStatus();
             cb.query().arrangePaidByBankTransfer();
