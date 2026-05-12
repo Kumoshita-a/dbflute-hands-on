@@ -151,9 +151,11 @@ public class HandsOn04Test extends UnitContainerTestCase {
             cb.query().queryMember().scalar_Equal().max(memberCB -> {
                 memberCB.specify().columnBirthdate();
                 memberCB.query().setMemberStatusCode_Equal_正式会員();
-                // TODO kumoshita 慣習として、pCB ではなく、purchaseCB (テーブルのキーワード) by jflute (2026/04/28)
-                // TODO kumoshita 慣習として、関連テーブルのLambdaは、blockスタイルのLambdaで by jflute (2026/04/28)
-                memberCB.query().existsPurchase(pCB -> pCB.query().setPaymentCompleteFlg_Equal_True());
+                // TODO done kumoshita 慣習として、pCB ではなく、purchaseCB (テーブルのキーワード) by jflute (2026/04/28)
+                // TODO done kumoshita 慣習として、関連テーブルのLambdaは、blockスタイルのLambdaで by jflute (2026/04/28)
+                memberCB.query().existsPurchase(purchaseCB -> {
+                    purchaseCB.query().setPaymentCompleteFlg_Equal_True();
+                });
                 // #1on1: こういうの考える時は、コードで考えるのではなく、図とか表とか (2026/04/28)
                 // (手元の紙で考えたということでGood)
                 // // ホワイトボードを買ってこよう
@@ -286,16 +288,20 @@ public class HandsOn04Test extends UnitContainerTestCase {
         // ## Act ##
         ListResultBean<Member> memberList = memberBhv.selectList(cb -> {
             cb.setupSelect_MemberStatus();
-            cb.query().existsPurchase(pCB -> {
-                pCB.query().existsPurchasePayment(ppCB -> ppCB.query().setPaymentMethodCode_Equal_BankTransfer());
+            cb.query().existsPurchase(purchaseCB -> {
+                purchaseCB.query().existsPurchasePayment(purchasePaymentCB -> purchasePaymentCB.query().setPaymentMethodCode_Equal_BankTransfer());
             });
             cb.query().setBirthdate_IsNotNull();
             cb.query().scalar_Equal().max(memberCB -> {
                 memberCB.specify().columnBirthdate();
-                memberCB.query().existsPurchase(pCB -> {
-                    pCB.query().existsPurchasePayment(ppCB -> ppCB.query().setPaymentMethodCode_Equal_BankTransfer());
+                memberCB.query().existsPurchase(purchaseCB -> {
+                    purchaseCB.query().existsPurchasePayment(purchasePaymentCB -> {
+                        purchasePaymentCB.query().setPaymentMethodCode_Equal_BankTransfer();
+                    });
                 });
-            }).partitionBy(scalarCB -> scalarCB.specify().columnMemberStatusCode());
+            }).partitionBy(scalarCB -> {
+                scalarCB.specify().columnMemberStatusCode();
+            });
             cb.query().queryMemberStatus().addOrderBy_DisplayOrder_Asc();
         });
 
@@ -328,7 +334,9 @@ public class HandsOn04Test extends UnitContainerTestCase {
             cb.query().scalar_Equal().max(memberCB -> {
                 memberCB.specify().columnBirthdate();
                 memberCB.query().arrangePaidByBankTransfer();
-            }).partitionBy(scalarCB -> scalarCB.specify().columnMemberStatusCode());
+            }).partitionBy(scalarCB -> {
+                scalarCB.specify().columnMemberStatusCode();
+            });
             cb.query().queryMemberStatus().addOrderBy_DisplayOrder_Asc();
         });
 
