@@ -349,4 +349,35 @@ public class HandsOn04Test extends UnitContainerTestCase {
         List<String> statusCodes = memberList.stream().map(Member::getMemberStatusCode).distinct().collect(java.util.stream.Collectors.toList());
         assertEquals(statusCodes.size(), memberList.size());
     }
+
+    /*
+     * 追加した "ハンズオン" 区分値を ConditionBean で使えることを確認
+     * <pre>
+     * o MEMBER_STATUS に HAN レコードを足したことで CDef.MemberStatus.ハンズオン が自動生成されている
+     * o setMemberStatusCode_Equal_ハンズオン() も同時に生成されているのでそれを使う
+     * o ハンズオンの会員データは投入していないので検索結果は0件である
+     * </pre>
+     */
+    /*
+    public void test_searchMember_byAddedHandsOnStatus() throws Exception {
+        // ## Arrange ##
+
+        // ## Act ##
+        ListResultBean<Member> memberList = memberBhv.selectList(cb -> {
+            cb.setupSelect_MemberStatus();
+            cb.query().setMemberStatusCode_Equal_ハンズオン();
+            cb.query().addOrderBy_MemberId_Asc();
+        });
+
+        // ## Assert ##
+        assertHasZeroElement(memberList);
+        log("CDef.MemberStatus.ハンズオン alias: {}, code: {}", CDef.MemberStatus.ハンズオン.alias(),
+                CDef.MemberStatus.ハンズオン.code());
+    }
+    */
+    // セクション 4「区分値の追加と変更」エクササイズの記録
+    // MEMBER_STATUS テーブルの TSV に "HAN/ハンズオン" レコードを一時追加して、ReplaceSchema → JDBC → Doc → Generate を回す。
+    // 結果、CDef.MemberStatus.ハンズオン と setMemberStatusCode_Equal_ハンズオン() が自動生成され、上記テストメソッドで実際にタイプセーフな検索が組めることを確認した。
+    // その後 TSV から HAN レコードを戻して再生成すると、当該区分値メソッドが消えて、
+    // このテストメソッドの 3 行 (setMemberStatusCode_Equal_ハンズオン() と CDef.MemberStatus.ハンズオン × 2)が漏れなくコンパイルエラーになった。
 }

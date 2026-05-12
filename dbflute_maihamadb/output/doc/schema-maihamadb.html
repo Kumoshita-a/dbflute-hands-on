@@ -442,6 +442,7 @@ pre.spolicyviodisp {
 <div class="navilinkarea">
 <p class="sublink">
  <a href="#cdef">Classification Definition</a>
+| <a href="#arrangequery">ArrangeQuery List</a>
 </p>
 <p class="sisterlink"><a href="./history-maihamadb.html">to HistoryHTML</a></p>
 </div>
@@ -680,6 +681,7 @@ pre.spolicyviodisp {
 <h2 id="member" title="type=TABLE, primaryKey={MEMBER_ID}, nameLength=6, columnCount=11">
 member
 &nbsp;<span class="tablefirstdatetitle">since 2026/02/03</span>
+&nbsp;<span class="arrqycount"><a href="#member_arrqy">(arrangeQuery=1)</a></span>
 </h2>
 <div class="tablecomment member_comment" data-name="member"><pre>会員: 会員登録時にデータが登録される。
 基本的に物理削除はなく、退会したらステータスが退会会員になる。</pre></div>
@@ -3328,6 +3330,13 @@ withdrawal_reason
 	</tbody>
 </table>
 
+<h2 id="arrangequery">ArrangeQuery List</h2>
+<h3 id="member_arrqy"><a href="#member">member</a></h3>
+<h4 id="member_arrqy_query">MemberCQ</h4>
+<dl class="arrqylist">
+	<dt>arrangePaidByBankTransfer() <span class="commentdesc">// 条件：銀行振込で購入を支払ったことのある会員</span></dt>
+	<dd>&nbsp;</dd>
+</dl>
 
 <h2 id="thanks">Thanks</h2>
 <p>
