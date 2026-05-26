@@ -1,7 +1,12 @@
 package org.docksidestage.handson.exercise;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
@@ -314,11 +319,34 @@ public class HandsOn04Test extends UnitContainerTestCase {
         // 想定: 銀行振込実績ありステータス分の会員が取れる (3 ステータス想定だが実データ次第なので 1 以上（空でないこと）をアサート)
         assertTrue(!memberList.isEmpty());
         // ステータスごとに 1 名であることも確認
-        // TODO kumoshita これはこれでmemberListの構造をチェックしているのはGood... by jflute (2026/05/12)
+        // TODO done kumoshita これはこれでmemberListの構造をチェックしているのはGood... by jflute (2026/05/12)
         // ただ、期待値をActの成果物(memberList)から求めても少し動作確認の精度として弱いので、
         // Actと無関係に期待値を求めてアサートしたいところ。
-        List<String> statusCodes = memberList.stream().map(Member::getMemberStatusCode).distinct().collect(java.util.stream.Collectors.toList());
-        assertEquals(statusCodes.size(), memberList.size());
+        // ArrangeQuery を利用して「銀行振込で支払った全会員」を別クエリで取得し、
+        // Java の Stream でステータスごとの最年少 (Birthdate最大) を抽出する。
+        // SQL の MAX() は NULL を無視するので、Java 側でも Birthdate NULL は集計対象から除外。
+        ListResultBean<Member> paidByBankTransferAll = memberBhv.selectList(cb -> {
+            cb.query().arrangePaidByBankTransfer();
+        });
+        assertTrue(!paidByBankTransferAll.isEmpty());
+
+        Map<String, Optional<Member>> expectedYoungestPerStatus = paidByBankTransferAll.stream()
+                .filter(m -> m.getBirthdate() != null)
+                .collect(Collectors.groupingBy(
+                        Member::getMemberStatusCode,
+                        Collectors.maxBy(Comparator.comparing(Member::getBirthdate))));
+
+        Set<Integer> expectedMemberIds = expectedYoungestPerStatus.values().stream()
+                .map(opt -> opt.orElseThrow())
+                .map(Member::getMemberId)
+                .collect(Collectors.toSet());
+
+        Set<Integer> actualMemberIds = memberList.stream()
+                .map(Member::getMemberId)
+                .collect(Collectors.toSet());
+
+        assertEquals(expectedMemberIds, actualMemberIds);
+        assertEquals(expectedMemberIds.size(), memberList.size()); // Set化で重複が潰れていないことの担保
         // #1on1: UnitTestの期待値をどう求めるか？連動性 (変化への対応) をどこまでやりきるか？ (2026/05/12)
         // 現場によっては、3と入れましょうな現場もある。
         // 逆に、もう少し連動性を持って、ある程度の変化が起きてもアサートが壊れないようにしましょうな現場もある。
@@ -376,8 +404,31 @@ public class HandsOn04Test extends UnitContainerTestCase {
                     member.getMemberStatus().get().getMemberStatusName(), member.getBirthdate());
         }
         assertTrue(!memberList.isEmpty());
-        List<String> statusCodes = memberList.stream().map(Member::getMemberStatusCode).distinct().collect(java.util.stream.Collectors.toList());
-        assertEquals(statusCodes.size(), memberList.size());
+
+        // 期待値は Act と独立に: ArrangeQuery で「銀行振込で支払った全会員」を取って
+        // MemberId の Set を比較する。MAX(NULL) 無視と合わせるため Birthdate NULL は除外。
+        ListResultBean<Member> paidByBankTransferAll = memberBhv.selectList(cb -> {
+            cb.query().arrangePaidByBankTransfer();
+        });
+        assertTrue(!paidByBankTransferAll.isEmpty());
+
+        Map<String, Optional<Member>> expectedYoungestPerStatus = paidByBankTransferAll.stream()
+                .filter(m -> m.getBirthdate() != null)
+                .collect(Collectors.groupingBy(
+                        Member::getMemberStatusCode,
+                        Collectors.maxBy(Comparator.comparing(Member::getBirthdate))));
+
+        Set<Integer> expectedMemberIds = expectedYoungestPerStatus.values().stream()
+                .map(opt -> opt.orElseThrow())
+                .map(Member::getMemberId)
+                .collect(Collectors.toSet());
+
+        Set<Integer> actualMemberIds = memberList.stream()
+                .map(Member::getMemberId)
+                .collect(Collectors.toSet());
+
+        assertEquals(expectedMemberIds, actualMemberIds);
+        assertEquals(expectedMemberIds.size(), memberList.size());
     }
 
     /*
