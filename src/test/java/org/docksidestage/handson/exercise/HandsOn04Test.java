@@ -12,6 +12,7 @@ import javax.annotation.Resource;
 
 import org.dbflute.cbean.result.ListResultBean;
 import org.docksidestage.handson.dbflute.allcommon.CDef;
+import org.docksidestage.handson.dbflute.cbean.PurchaseCB;
 import org.docksidestage.handson.dbflute.exbhv.MemberBhv;
 import org.docksidestage.handson.dbflute.exbhv.PurchaseBhv;
 import org.docksidestage.handson.dbflute.exentity.Member;
@@ -284,6 +285,9 @@ public class HandsOn04Test extends UnitContainerTestCase {
     }
 
     // done jflute 次回1on1, ArrangeQueryのお話 (2026/04/28)
+    // #1on1: 相対的に使える部品になる。ConditionBeanじゃないと厳しい。 (2026/05/26)
+    // //String sql = "select * from MEMBER mb where mb.xxxxxx like '...'";
+    // new PurchaseCB().query().queryMember().arrangePaidByBankTransfer();
     /**
      * 銀行振込で購入を支払ったことのある、会員ステータスごとに一番若い会員を検索
      */
@@ -330,6 +334,7 @@ public class HandsOn04Test extends UnitContainerTestCase {
         });
         assertTrue(!paidByBankTransferAll.isEmpty());
 
+        // #1on1: まさしくロジックで求めた。Good。 (2026/05/26)
         Map<String, Optional<Member>> expectedYoungestPerStatus = paidByBankTransferAll.stream()
                 .filter(m -> m.getBirthdate() != null)
                 .collect(Collectors.groupingBy(
@@ -337,7 +342,7 @@ public class HandsOn04Test extends UnitContainerTestCase {
                         Collectors.maxBy(Comparator.comparing(Member::getBirthdate))));
 
         Set<Integer> expectedMemberIds = expectedYoungestPerStatus.values().stream()
-                .map(opt -> opt.orElseThrow())
+                .map(opt -> opt.get()) // Java8なのでorElseThrow(引数なし)はまだ使えない
                 .map(Member::getMemberId)
                 .collect(Collectors.toSet());
 
@@ -345,8 +350,23 @@ public class HandsOn04Test extends UnitContainerTestCase {
                 .map(Member::getMemberId)
                 .collect(Collectors.toSet());
 
+        // #1on1: もし、期待値を固定値にするパターンだったら 1,24,84 ...キツイ (2026/05/26)
         assertEquals(expectedMemberIds, actualMemberIds);
         assertEquals(expectedMemberIds.size(), memberList.size()); // Set化で重複が潰れていないことの担保
+        // #1on1: もし件数だけのアサートを想定した場合、みんなのよくあるパターン (2026/05/26)
+        //  assertEquals(3, memberList.size());
+        //  assertEquals(CDef.MemberStatus.listAll().size(), memberList.size());
+        // ↑MEMBER_STATUSしか見てないので、MEMBERテーブルのテストデータの変更で影響されやすい。
+        //  assertEquals([MEMBERが存在するMemberStatusの件数], memberList.size());
+        // ↑求め方:
+        //   A. MemberStatusを基点にして、existsMember()
+        //   B. ScalarSelectを使って、直接MEMBERから種類数を取る
+        //  Integer countDistinct = memberBhv.selectScalar(Integer.class).countDistinct(cb -> {
+        //      cb.specify().columnMemberStatusCode();
+        //  });
+        // まあ、もっと厳密には、これに、arrangeの条件まで入れていく。
+        // ほぼおうむ返し条件になるけど。
+
         // #1on1: UnitTestの期待値をどう求めるか？連動性 (変化への対応) をどこまでやりきるか？ (2026/05/12)
         // 現場によっては、3と入れましょうな現場もある。
         // 逆に、もう少し連動性を持って、ある程度の変化が起きてもアサートが壊れないようにしましょうな現場もある。
@@ -419,7 +439,7 @@ public class HandsOn04Test extends UnitContainerTestCase {
                         Collectors.maxBy(Comparator.comparing(Member::getBirthdate))));
 
         Set<Integer> expectedMemberIds = expectedYoungestPerStatus.values().stream()
-                .map(opt -> opt.orElseThrow())
+                .map(opt -> opt.get())
                 .map(Member::getMemberId)
                 .collect(Collectors.toSet());
 
@@ -461,4 +481,10 @@ public class HandsOn04Test extends UnitContainerTestCase {
     // 結果、CDef.MemberStatus.ハンズオン と setMemberStatusCode_Equal_ハンズオン() が自動生成され、上記テストメソッドで実際にタイプセーフな検索が組めることを確認した。
     // その後 TSV から HAN レコードを戻して再生成すると、当該区分値メソッドが消えて、
     // このテストメソッドの 3 行 (setMemberStatusCode_Equal_ハンズオン() と CDef.MemberStatus.ハンズオン × 2)が漏れなくコンパイルエラーになった。
+    
+    // #1on1: 現場での区分値要素の削除の仕方 (2026/05/26)
+    // テーブルの構造的に referrer がいないかどうか？
+    // 業務的にその要素を指定しているところがないか？ (試しに削除して自動生成してみるといい)
+    
+    // #1on1: CraftDiffの紹介。現場では使ってる (2026/05/26)
 }
