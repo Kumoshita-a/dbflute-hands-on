@@ -14,8 +14,10 @@ import javax.annotation.Resource;
 
 import org.dbflute.cbean.result.ListResultBean;
 import org.dbflute.optional.OptionalThing;
+import org.dbflute.util.DfReflectionUtil;
 import org.docksidestage.handson.dbflute.allcommon.CDef;
 import org.docksidestage.handson.dbflute.cbean.PurchaseCB;
+import org.docksidestage.handson.dbflute.cbean.cq.MemberCQ;
 import org.docksidestage.handson.dbflute.cbean.cq.bs.AbstractBsMemberCQ;
 import org.docksidestage.handson.dbflute.exbhv.MemberBhv;
 import org.docksidestage.handson.dbflute.exbhv.PurchaseBhv;
@@ -327,7 +329,7 @@ public class HandsOn04Test extends UnitContainerTestCase {
         // 想定: 銀行振込実績ありステータス分の会員が取れる (3 ステータス想定だが実データ次第なので 1 以上（空でないこと）をアサート)
         assertTrue(!memberList.isEmpty());
         // ステータスごとに 1 名であることも確認
-        // TODO done kumoshita これはこれでmemberListの構造をチェックしているのはGood... by jflute (2026/05/12)
+        // done kumoshita これはこれでmemberListの構造をチェックしているのはGood... by jflute (2026/05/12)
         // ただ、期待値をActの成果物(memberList)から求めても少し動作確認の精度として弱いので、
         // Actと無関係に期待値を求めてアサートしたいところ。
         // ArrangeQuery を利用して「銀行振込で支払った全会員」を別クエリで取得し、
@@ -505,10 +507,14 @@ public class HandsOn04Test extends UnitContainerTestCase {
         Class<?> cqType = AbstractBsMemberCQ.class;
 
         // ## Act ##
+        // #1on1: getMethod()とgetDeclaredMethod()の違い (2026/06/09)
+        // DBFluteだと、DfReflectionUtil.getWholeMethod();
+        // getAccessibleMethod() や、flexible のメソッドのコードもちょっと読んでみた。
         Method nativeSetter = cqType.getDeclaredMethod("setMemberStatusCode_Equal", String.class);
         Method typeSafeSetter = cqType.getDeclaredMethod("setMemberStatusCode_Equal_AsMemberStatus", CDef.MemberStatus.class);
 
         // ## Assert ##
+        // #1on1: よくぞやってくれたわが強者よ (2026/06/09)
         log("native setter: {}, typesafe setter: {}", Modifier.toString(nativeSetter.getModifiers()),
                 Modifier.toString(typeSafeSetter.getModifiers()));
         // ネイティヴ型(String)指定は外から呼べない(protected)
@@ -555,6 +561,9 @@ public class HandsOn04Test extends UnitContainerTestCase {
         // ## Arrange ##
 
         // ## Act ##
+        // #1on1: その列挙のif文、見かけたら、ちょっと待った！話 (2026/06/09)
+        // 再利用の第一歩の思考。業務的な抽象化をして、小さな業務概念を何かしらの方法で表現したい。
+        // DBFluteだと、それがdfpropで定義してメソッドを自動生成。
         ListResultBean<Member> memberList = memberBhv.selectList(cb -> {
             cb.setupSelect_MemberStatus();
             cb.query().setMemberStatusCode_InScope_ServiceAvailable();
@@ -606,6 +615,7 @@ public class HandsOn04Test extends UnitContainerTestCase {
      */
     public void test_searchMember_havingUnpaidPurchase_bySisterCode() throws Exception {
         // ## Arrange ##
+        // #1on1: 姉妹コードの使い所の話(ささいではあるけれど) (2026/06/09)
         CDef.Flg unpaidFlg = provideUnpaidFlg();
         // 姉妹コード "false" が Flg.False に解決されること
         assertEquals(CDef.Flg.False, unpaidFlg);
@@ -619,6 +629,12 @@ public class HandsOn04Test extends UnitContainerTestCase {
             cb.query().addOrderBy_FormalizedDatetime_Desc().withNullsLast();
             cb.query().addOrderBy_MemberId_Asc();
         });
+        // #1on1: O/Rマッパー業界では鬼門のone-to-manyの扱い (2026/06/09)
+        // n+1問題、1人1人の会員ごとにその人のpurchasesを取ると、n+1のSQL発行回数になっちゃう。
+        // パフォーマンスチューニングのお仕事の昔話。1ボタンで500回SQLが流れてた。
+        // LoadReferrerは、1+1+1...にした。many側テーブル1つにつき1回のSQL。
+        // (超最速ではないけど、すごく遅くなるってことはなく安定する)
+
         // LoadReferrer: 未払い購入だけを1回の追加クエリでまとめてロード
         memberBhv.loadPurchase(memberList, purchaseCB -> {
             purchaseCB.query().setPaymentCompleteFlg_Equal_AsFlg(unpaidFlg);
@@ -639,7 +655,7 @@ public class HandsOn04Test extends UnitContainerTestCase {
         }
     }
 
-
+    // TODO jflute 次回1on1にてふぉろー (2026/06/09)
     /**
      * 会員ステータスの表示順(subItem)で会員を並べる
      * <pre>
