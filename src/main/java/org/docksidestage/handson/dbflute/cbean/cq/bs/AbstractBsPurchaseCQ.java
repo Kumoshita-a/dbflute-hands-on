@@ -808,6 +808,16 @@ public abstract class AbstractBsPurchaseCQ extends AbstractConditionQuery {
     }
 
     /**
+     * Equal(=). As boolean for Flg. <br>
+     * PAYMENT_COMPLETE_FLG: {NotNull, INT(10), classification=Flg} <br>
+     * フラグを示す
+     * @param determination The determination, true or false. (basically NotNull: error as default, or no condition as option)
+     */
+    public void setPaymentCompleteFlg_Equal_AsBoolean(Boolean determination) {
+        setPaymentCompleteFlg_Equal_AsFlg(CDef.Flg.of(determination).orElse(null));
+    }
+
+    /**
      * Equal(=). As True (1). And NullIgnored, OnlyOnceRegistered. <br>
      * はい: 有効を示す
      */

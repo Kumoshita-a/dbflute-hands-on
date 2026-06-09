@@ -156,6 +156,16 @@ public abstract class AbstractBsMemberStatusCQ extends AbstractConditionQuery {
         doSetMemberStatusCode_InScope(cTStrL(cdefList));
     }
 
+    /**
+     * InScope {in ('a', 'b')}. As MemberStatus. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br>
+     * 入会から退会までの会員のステータスを示す <br>
+     * サービスを利用できる会員。正式会員と仮会員が該当する <br>
+     * The group elements:[正式会員, 仮会員]
+     */
+    public void setMemberStatusCode_InScope_ServiceAvailable() {
+        setMemberStatusCode_InScope_AsMemberStatus(CDef.MemberStatus.listOfServiceAvailable());
+    }
+
     protected void doSetMemberStatusCode_InScope(Collection<String> memberStatusCodeList) {
         regINS(CK_INS, cTL(memberStatusCodeList), xgetCValueMemberStatusCode(), "MEMBER_STATUS_CODE");
     }

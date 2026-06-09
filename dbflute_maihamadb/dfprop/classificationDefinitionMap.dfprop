@@ -39,15 +39,25 @@
 map:{
     ; Flg = list:{
         ; map:{topComment=フラグを示す; codeType=Number}
-        ; map:{code=1; name=True ; alias=はい  ; comment=有効を示す}
-        ; map:{code=0; name=False; alias=いいえ; comment=無効を示す}
+        ; map:{code=1; name=True ; alias=はい  ; comment=有効を示す; sisterCode=true}
+        ; map:{code=0; name=False; alias=いいえ; comment=無効を示す; sisterCode=false}
     }
     ; MemberStatus = list:{
-        ; map:{topComment=入会から退会までの会員のステータスを示す; codeType=String}
+        ; map:{
+            ; topComment=入会から退会までの会員のステータスを示す; codeType=String
+            ; groupingMap = map:{
+                ; serviceAvailable = map:{
+                    ; groupComment = サービスを利用できる会員。正式会員と仮会員が該当する
+                    ; elementList = list:{正式会員 ; 仮会員}
+                }
+            }
+        }
         ; map:{
             ; table=MEMBER_STATUS
             ; code=MEMBER_STATUS_CODE; name=MEMBER_STATUS_NAME
             ; comment=DESCRIPTION; orderBy=DISPLAY_ORDER
+            # ハンズオン セクション4「独自の属性を追加」: 表示順カラムを subItem(displayOrder) として持たせる
+            ; subItemMap=map:{displayOrder=DISPLAY_ORDER}
         }
     }
     ; ServiceRank = list:{

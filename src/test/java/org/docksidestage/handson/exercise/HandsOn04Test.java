@@ -1,5 +1,7 @@
 package org.docksidestage.handson.exercise;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -11,8 +13,10 @@ import java.util.stream.Collectors;
 import javax.annotation.Resource;
 
 import org.dbflute.cbean.result.ListResultBean;
+import org.dbflute.optional.OptionalThing;
 import org.docksidestage.handson.dbflute.allcommon.CDef;
 import org.docksidestage.handson.dbflute.cbean.PurchaseCB;
+import org.docksidestage.handson.dbflute.cbean.cq.bs.AbstractBsMemberCQ;
 import org.docksidestage.handson.dbflute.exbhv.MemberBhv;
 import org.docksidestage.handson.dbflute.exbhv.PurchaseBhv;
 import org.docksidestage.handson.dbflute.exentity.Member;
@@ -487,4 +491,211 @@ public class HandsOn04Test extends UnitContainerTestCase {
     // 業務的にその要素を指定しているところがないか？ (試しに削除して自動生成してみるといい)
     
     // #1on1: CraftDiffの紹介。現場では使ってる (2026/05/26)
+
+
+    /**
+     * ネイティヴ型の区分値設定メソッドが不可視化(protected)されていることを確認
+     * <pre>
+     * o setMemberStatusCode_Equal(String) は protected (ベタなString指定を抑止)
+     * o setMemberStatusCode_Equal_AsMemberStatus(CDef.MemberStatus) は public (タイプセーフ)
+     * </pre>
+     */
+    public void test_nativeTypeSetter_isHidden() throws Exception {
+        // ## Arrange ##
+        Class<?> cqType = AbstractBsMemberCQ.class;
+
+        // ## Act ##
+        Method nativeSetter = cqType.getDeclaredMethod("setMemberStatusCode_Equal", String.class);
+        Method typeSafeSetter = cqType.getDeclaredMethod("setMemberStatusCode_Equal_AsMemberStatus", CDef.MemberStatus.class);
+
+        // ## Assert ##
+        log("native setter: {}, typesafe setter: {}", Modifier.toString(nativeSetter.getModifiers()),
+                Modifier.toString(typeSafeSetter.getModifiers()));
+        // ネイティヴ型(String)指定は外から呼べない(protected)
+        assertTrue(Modifier.isProtected(nativeSetter.getModifiers()));
+        assertFalse(Modifier.isPublic(nativeSetter.getModifiers()));
+        // タイプセーフ版は公開されている(public)
+        assertTrue(Modifier.isPublic(typeSafeSetter.getModifiers()));
+    }
+
+
+    /**
+     * 未定義の区分値コードはタイプセーフに解決されない(空)ことを確認
+     * <pre>
+     * o classificationUndefinedHandlingType=EXCEPTION 設定下での未定義コードの扱い
+     * o 実行時 EXCEPTION 化の本体検証は上記 ReplaceSchema デモ(記録コメント)で担保
+     * </pre>
+     */
+    public void test_undefinedClassification_returnsEmpty() throws Exception {
+        // ## Arrange ##
+
+        // ## Act ##
+        OptionalThing<CDef.MemberStatus> undefined = CDef.MemberStatus.of("XXX");
+        OptionalThing<CDef.MemberStatus> defined = CDef.MemberStatus.of("FML");
+
+        // ## Assert ##
+        log("undefined 'XXX' present: {}, defined 'FML': {}", undefined.isPresent(),
+                defined.map(CDef.MemberStatus::alias).orElse("none"));
+        assertFalse(undefined.isPresent());
+        assertTrue(defined.isPresent());
+        assertEquals(CDef.MemberStatus.正式会員, defined.get());
+    }
+
+
+    /**
+     * サービスを利用できる会員(グルーピング)を検索
+     * <pre>
+     * o グルーピング判定の検索メソッド setMemberStatusCode_InScope_ServiceAvailable() を使う
+     * o 会員ステータスの表示順で並べる
+     * o 取得会員が全員「サービス利用可能」グループ(正式会員 or 仮会員)であることをアサート
+     * o 退会会員が含まれないこと、正式会員・仮会員の両方が取れていることをアサート(紛れのgreen回避)
+     * </pre>
+     */
+    public void test_searchMember_byServiceAvailableGroup() throws Exception {
+        // ## Arrange ##
+
+        // ## Act ##
+        ListResultBean<Member> memberList = memberBhv.selectList(cb -> {
+            cb.setupSelect_MemberStatus();
+            cb.query().setMemberStatusCode_InScope_ServiceAvailable();
+            cb.query().queryMemberStatus().addOrderBy_DisplayOrder_Asc();
+            cb.query().addOrderBy_MemberId_Asc();
+        });
+
+        // ## Assert ##
+        assertHasAnyElement(memberList);
+        boolean foundFormalized = false;
+        boolean foundProvisional = false;
+        for (Member member : memberList) {
+            MemberStatus status = member.getMemberStatus().get();
+            log("会員名称: {}, ステータス: {}, グループ所属: {}", member.getMemberName(), status.getMemberStatusName(),
+                    member.isMemberStatusCode_ServiceAvailable());
+            // グルーピング判定(エンティティ)で「サービス利用可能」グループに属している
+            assertTrue(member.isMemberStatusCode_ServiceAvailable());
+            // 正式会員 or 仮会員 のみ。退会会員は含まれない
+            assertTrue(member.isMemberStatusCode正式会員() || member.isMemberStatusCode仮会員());
+            assertFalse(member.isMemberStatusCode退会会員());
+            if (member.isMemberStatusCode正式会員()) {
+                foundFormalized = true;
+            }
+            if (member.isMemberStatusCode仮会員()) {
+                foundProvisional = true;
+            }
+        }
+        assertTrue(foundFormalized);
+        assertTrue(foundProvisional);
+    }
+
+
+    /**
+     * 姉妹コードで未払い(false)を判定する private ヘルパー。
+     * @return 未払いを表す Flg (CDef.Flg.False)。姉妹コード "false" から解決する。
+     */
+    private CDef.Flg provideUnpaidFlg() {
+        return CDef.Flg.of("false").get(); // Java8なのでorElseThrow(引数なし)はまだ使えない
+    }
+
+    /**
+     * 未払い購入のある会員を検索 (姉妹コード + LoadReferrer)
+     * <pre>
+     * o 支払フラグの未払い(false)を姉妹コード経由で解決した Flg で絞り込む
+     * o 正式会員日時の降順(null後方) → 会員IDの昇順で並べる
+     * o LoadReferrer で未払い購入を1回の追加クエリでロード(n+1を避ける)
+     * o 各会員が未払い購入を保持していること、購入が未払い(False)であることをアサート
+     * </pre>
+     */
+    public void test_searchMember_havingUnpaidPurchase_bySisterCode() throws Exception {
+        // ## Arrange ##
+        CDef.Flg unpaidFlg = provideUnpaidFlg();
+        // 姉妹コード "false" が Flg.False に解決されること
+        assertEquals(CDef.Flg.False, unpaidFlg);
+
+        // ## Act ##
+        ListResultBean<Member> memberList = memberBhv.selectList(cb -> {
+            cb.query().existsPurchase(purchaseCB -> {
+                purchaseCB.query().setPaymentCompleteFlg_Equal_AsFlg(unpaidFlg);
+            });
+            // 正式会員日時の降順、null は後方へ
+            cb.query().addOrderBy_FormalizedDatetime_Desc().withNullsLast();
+            cb.query().addOrderBy_MemberId_Asc();
+        });
+        // LoadReferrer: 未払い購入だけを1回の追加クエリでまとめてロード
+        memberBhv.loadPurchase(memberList, purchaseCB -> {
+            purchaseCB.query().setPaymentCompleteFlg_Equal_AsFlg(unpaidFlg);
+            purchaseCB.query().addOrderBy_PurchaseDatetime_Asc();
+        });
+
+        // ## Assert ##
+        assertHasAnyElement(memberList);
+        for (Member member : memberList) {
+            List<Purchase> purchaseList = member.getPurchaseList();
+            log("会員名称: {}, 正式会員日時: {}, 未払い購入数: {}", member.getMemberName(), member.getFormalizedDatetime(),
+                    purchaseList.size());
+            // 未払い購入を保持している
+            assertHasAnyElement(purchaseList);
+            for (Purchase purchase : purchaseList) {
+                assertEquals(CDef.Flg.False, purchase.getPaymentCompleteFlgAsFlg());
+            }
+        }
+    }
+
+
+    /**
+     * 会員ステータスの表示順(subItem)で会員を並べる
+     * <pre>
+     * o MemberStatus は setupSelect しない(ステータスデータは取得しない)
+     * o 区分値の subItem(displayOrder)を使って Java 側で並べ替え: 表示順 昇順 → 会員ID 降順
+     * o ステータスデータを取得していない(joinしていない)ことをアサート
+     * o 期待値は Act と独立に算出: MemberStatus を join して DB 側で表示順に並べた会員ID列と一致することをアサート
+     *   (自分で並べた結果を同じキーで検証する循環アサートにしない)
+     * </pre>
+     */
+    public void test_searchMember_orderByStatusDisplayOrder_bySubItem() throws Exception {
+        // ## Arrange ##
+        // 期待値(Actと独立): MemberStatus を join し、DB 側で表示順(DISPLAY_ORDER)昇順 → 会員ID降順 に並べた会員ID列
+        ListResultBean<Member> expectedOrderedList = memberBhv.selectList(cb -> {
+            cb.setupSelect_MemberStatus();
+            cb.query().queryMemberStatus().addOrderBy_DisplayOrder_Asc();
+            cb.query().addOrderBy_MemberId_Desc();
+        });
+        List<Integer> expectedMemberIdOrder = expectedOrderedList.stream()
+                .map(Member::getMemberId)
+                .collect(Collectors.toList());
+
+        // ## Act ##
+        // MemberStatus は setupSelect しない(= ステータスデータは取得しない)
+        ListResultBean<Member> memberList = memberBhv.selectList(cb -> {
+            cb.query().addOrderBy_MemberId_Asc(); // 取得順は不問(安定のため指定)
+        });
+        // 区分値の subItem(displayOrder)を使って Java 側で並べ替え: 表示順 昇順 → 会員ID 降順
+        List<Integer> actualMemberIdOrder = memberList.stream()
+                .sorted(Comparator.comparingInt(this::statusDisplayOrderOf)
+                        .thenComparing(Comparator.comparing(Member::getMemberId).reversed()))
+                .map(Member::getMemberId)
+                .collect(Collectors.toList());
+
+        // ## Assert ##
+        assertHasAnyElement(memberList);
+        // ステータスデータは取得していない(setupSelectしていないので relation は空)
+        for (Member member : memberList) {
+            assertFalse(member.getMemberStatus().isPresent());
+        }
+        for (Member member : expectedOrderedList) {
+            log("会員ID: {}, ステータス: {}, 表示順(subItem): {}", member.getMemberId(),
+                    member.getMemberStatus().get().getMemberStatusName(), statusDisplayOrderOf(member));
+        }
+        // subItem(join無し)で並べた順序が、DB join で表示順に並べた独立の期待値と一致する
+        // → subItem(displayOrder)の値が正しく、表示順通りに並べられることを非循環で担保
+        assertEquals(expectedMemberIdOrder, actualMemberIdOrder);
+    }
+
+    /**
+     * 会員のステータス区分値の subItem(displayOrder)を数値で取得する。
+     * @param member 会員 (NotNull)
+     * @return 会員ステータスの表示順 (DISPLAY_ORDER)
+     */
+    private int statusDisplayOrderOf(Member member) {
+        CDef.MemberStatus status = member.getMemberStatusCodeAsMemberStatus();
+        return Integer.parseInt((String) status.subItemMap().get("displayOrder"));
+    }
 }

@@ -68,7 +68,7 @@ map:{
     #   LOGGING   - logging only when found (exception if ReplaceSchema)
     #   ALLOWED   - no action
     #
-    #; classificationUndefinedHandlingType = LOGGING
+    ; classificationUndefinedHandlingType = EXCEPTION
     # - - - - - - - - - -/
 
     # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

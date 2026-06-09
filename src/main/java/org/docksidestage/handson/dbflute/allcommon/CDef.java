@@ -22,14 +22,15 @@ public interface CDef extends Classification {
      */
     public enum Flg implements CDef {
         /** はい: 有効を示す */
-        True("1", "はい"),
+        True("1", "はい", new String[] {"true"}),
         /** いいえ: 無効を示す */
-        False("0", "いいえ");
+        False("0", "いいえ", new String[] {"false"});
         private static ZzzoneSlimmer<Flg> _slimmer = new ZzzoneSlimmer<>(Flg.class, values());
-        private String _code; private String _alias;
-        private Flg(String code, String alias) { _code = code; _alias = alias; }
+        private String _code; private String _alias; private Set<String> _sisterSet;
+        private Flg(String code, String alias, String[] sisters)
+        { _code = code; _alias = alias; _sisterSet = ZzzoneSlimmer.toSisterSet(sisters); }
         public String code() { return _code; } public String alias() { return _alias; }
-        public Set<String> sisterSet() { return Collections.emptySet(); }
+        public Set<String> sisterSet() { return _sisterSet; }
         public Map<String, Object> subItemMap() { return Collections.emptyMap(); }
         public ClassificationMeta meta() { return CDef.DefMeta.Flg; }
         public boolean inGroup(String groupName) { return false; }
@@ -104,13 +105,44 @@ public interface CDef extends Classification {
         /** 仮会員: 入会直後のステータスで一部のサイトサービスが利用可能 */
         仮会員("PRV", "仮会員");
         private static ZzzoneSlimmer<MemberStatus> _slimmer = new ZzzoneSlimmer<>(MemberStatus.class, values());
+        private static final Map<String, Map<String, Object>> _subItemMapMap = new HashMap<String, Map<String, Object>>();
+        static {
+            {
+                Map<String, Object> subItemMap = new HashMap<String, Object>();
+                subItemMap.put("displayOrder", "1");
+                _subItemMapMap.put(正式会員.code(), Collections.unmodifiableMap(subItemMap));
+            }
+            {
+                Map<String, Object> subItemMap = new HashMap<String, Object>();
+                subItemMap.put("displayOrder", "2");
+                _subItemMapMap.put(退会会員.code(), Collections.unmodifiableMap(subItemMap));
+            }
+            {
+                Map<String, Object> subItemMap = new HashMap<String, Object>();
+                subItemMap.put("displayOrder", "3");
+                _subItemMapMap.put(仮会員.code(), Collections.unmodifiableMap(subItemMap));
+            }
+        }
         private String _code; private String _alias;
         private MemberStatus(String code, String alias) { _code = code; _alias = alias; }
         public String code() { return _code; } public String alias() { return _alias; }
         public Set<String> sisterSet() { return Collections.emptySet(); }
-        public Map<String, Object> subItemMap() { return Collections.emptyMap(); }
+        public Map<String, Object> subItemMap() { return _subItemMapMap.get(code()); }
         public ClassificationMeta meta() { return CDef.DefMeta.MemberStatus; }
-        public boolean inGroup(String groupName) { return false; }
+        public String displayOrder() {
+            return (String)subItemMap().get("displayOrder");
+        }
+        /**
+         * Is the classification in the group? <br>
+         * サービスを利用できる会員。正式会員と仮会員が該当する <br>
+         * The group elements:[正式会員, 仮会員]
+         * @return The determination, true or false.
+         */
+        public boolean isServiceAvailable() { return 正式会員.equals(this) || 仮会員.equals(this); }
+        public boolean inGroup(String groupName) {
+            if ("serviceAvailable".equalsIgnoreCase(groupName)) { return isServiceAvailable(); }
+            return false;
+        }
         /**
          * Get the classification of the code. (CaseInsensitive)
          * @param code The value of code, which is case-insensitive. (NullAllowed: if null, returns empty)
@@ -150,6 +182,7 @@ public interface CDef extends Classification {
          */
         public static List<MemberStatus> listByGroup(String groupName) {
             if (groupName == null) { throw new IllegalArgumentException("The argument 'groupName' should not be null."); }
+            if ("serviceAvailable".equalsIgnoreCase(groupName)) { return listOfServiceAvailable(); }
             throw new ClassificationNotFoundException("Unknown classification group: MemberStatus." + groupName);
         }
         /**
@@ -161,13 +194,25 @@ public interface CDef extends Classification {
         @Deprecated
         public static List<MemberStatus> listOf(Collection<String> codeList) { return _slimmer.listOf(codeList); }
         /**
+         * Get the list of group classification elements. (returns new copied list) <br>
+         * サービスを利用できる会員。正式会員と仮会員が該当する <br>
+         * The group elements:[正式会員, 仮会員]
+         * @return The snapshot list of classification elements in the group. (NotNull)
+         */
+        public static List<MemberStatus> listOfServiceAvailable() {
+            return new ArrayList<>(Arrays.asList(正式会員, 仮会員));
+        }
+        /**
          * <span style="color: #AD4747; font-size: 120%">Old style so use listByGroup(groupName).</span>
          * @param groupName The string of group name, which is case-sensitive. (NullAllowed: if null, returns empty list)
          * @return The snapshot list of classification elements in the group. (NotNull, EmptyAllowed: if the group is not found)
          * @deprecated use listByGroup(groupName) instead.
          */
         @Deprecated
-        public static List<MemberStatus> groupOf(String groupName) { return new ArrayList<>(); }
+        public static List<MemberStatus> groupOf(String groupName) {
+            if ("serviceAvailable".equalsIgnoreCase(groupName)) { return listOfServiceAvailable(); }
+            return new ArrayList<>();
+        }
         @Override public String toString() { return code(); }
     }
 
@@ -678,37 +723,37 @@ public interface CDef extends Classification {
         /** フラグを示す */
         Flg(cd -> CDef.Flg.of(cd), nm -> CDef.Flg.byName(nm)
         , () -> CDef.Flg.listAll(), gp -> CDef.Flg.listByGroup(gp)
-        , ClassificationCodeType.Number, ClassificationUndefinedHandlingType.LOGGING),
+        , ClassificationCodeType.Number, ClassificationUndefinedHandlingType.EXCEPTION),
 
         /** 入会から退会までの会員のステータスを示す */
         MemberStatus(cd -> CDef.MemberStatus.of(cd), nm -> CDef.MemberStatus.byName(nm)
         , () -> CDef.MemberStatus.listAll(), gp -> CDef.MemberStatus.listByGroup(gp)
-        , ClassificationCodeType.String, ClassificationUndefinedHandlingType.LOGGING),
+        , ClassificationCodeType.String, ClassificationUndefinedHandlingType.EXCEPTION),
 
         /** 会員が受けられるサービスのランクを示す */
         ServiceRank(cd -> CDef.ServiceRank.of(cd), nm -> CDef.ServiceRank.byName(nm)
         , () -> CDef.ServiceRank.listAll(), gp -> CDef.ServiceRank.listByGroup(gp)
-        , ClassificationCodeType.String, ClassificationUndefinedHandlingType.LOGGING),
+        , ClassificationCodeType.String, ClassificationUndefinedHandlingType.EXCEPTION),
 
         /** 主に会員の住んでいる地域を示す */
         Region(cd -> CDef.Region.of(cd), nm -> CDef.Region.byName(nm)
         , () -> CDef.Region.listAll(), gp -> CDef.Region.listByGroup(gp)
-        , ClassificationCodeType.Number, ClassificationUndefinedHandlingType.LOGGING),
+        , ClassificationCodeType.Number, ClassificationUndefinedHandlingType.EXCEPTION),
 
         /** 会員の退会理由。なのでちょっとねがてぃぶ */
         WithdrawalReason(cd -> CDef.WithdrawalReason.of(cd), nm -> CDef.WithdrawalReason.byName(nm)
         , () -> CDef.WithdrawalReason.listAll(), gp -> CDef.WithdrawalReason.listByGroup(gp)
-        , ClassificationCodeType.String, ClassificationUndefinedHandlingType.LOGGING),
+        , ClassificationCodeType.String, ClassificationUndefinedHandlingType.EXCEPTION),
 
         /** 商品のカテゴリ。階層構造である */
         ProductCategory(cd -> CDef.ProductCategory.of(cd), nm -> CDef.ProductCategory.byName(nm)
         , () -> CDef.ProductCategory.listAll(), gp -> CDef.ProductCategory.listByGroup(gp)
-        , ClassificationCodeType.String, ClassificationUndefinedHandlingType.LOGGING),
+        , ClassificationCodeType.String, ClassificationUndefinedHandlingType.EXCEPTION),
 
         /** 商品ステータス。あんまり面白みのないステータス */
         ProductStatus(cd -> CDef.ProductStatus.of(cd), nm -> CDef.ProductStatus.byName(nm)
         , () -> CDef.ProductStatus.listAll(), gp -> CDef.ProductStatus.listByGroup(gp)
-        , ClassificationCodeType.String, ClassificationUndefinedHandlingType.LOGGING),
+        , ClassificationCodeType.String, ClassificationUndefinedHandlingType.EXCEPTION),
 
         /** 支払方法 */
         PaymentMethod(cd -> CDef.PaymentMethod.of(cd), nm -> CDef.PaymentMethod.byName(nm)

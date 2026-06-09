@@ -384,6 +384,16 @@ public abstract class AbstractBsMemberLoginCQ extends AbstractConditionQuery {
     }
 
     /**
+     * Equal(=). As boolean for Flg. <br>
+     * MOBILE_LOGIN_FLG: {NotNull, INT(10), classification=Flg} <br>
+     * フラグを示す
+     * @param determination The determination, true or false. (basically NotNull: error as default, or no condition as option)
+     */
+    public void setMobileLoginFlg_Equal_AsBoolean(Boolean determination) {
+        setMobileLoginFlg_Equal_AsFlg(CDef.Flg.of(determination).orElse(null));
+    }
+
+    /**
      * Equal(=). As True (1). And NullIgnored, OnlyOnceRegistered. <br>
      * はい: 有効を示す
      */
@@ -602,6 +612,16 @@ public abstract class AbstractBsMemberLoginCQ extends AbstractConditionQuery {
      */
     public void setLoginMemberStatusCode_InScope_AsMemberStatus(Collection<CDef.MemberStatus> cdefList) {
         doSetLoginMemberStatusCode_InScope(cTStrL(cdefList));
+    }
+
+    /**
+     * InScope {in ('a', 'b')}. As MemberStatus. And NullOrEmptyIgnored, NullOrEmptyElementIgnored, SeveralRegistered. <br>
+     * 入会から退会までの会員のステータスを示す <br>
+     * サービスを利用できる会員。正式会員と仮会員が該当する <br>
+     * The group elements:[正式会員, 仮会員]
+     */
+    public void setLoginMemberStatusCode_InScope_ServiceAvailable() {
+        setLoginMemberStatusCode_InScope_AsMemberStatus(CDef.MemberStatus.listOfServiceAvailable());
     }
 
     protected void doSetLoginMemberStatusCode_InScope(Collection<String> loginMemberStatusCodeList) {

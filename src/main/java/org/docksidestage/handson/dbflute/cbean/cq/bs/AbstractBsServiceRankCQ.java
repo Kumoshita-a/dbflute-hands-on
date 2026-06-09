@@ -575,6 +575,16 @@ public abstract class AbstractBsServiceRankCQ extends AbstractConditionQuery {
     }
 
     /**
+     * Equal(=). As boolean for Flg. <br>
+     * NEW_ACCEPTABLE_FLG: {NotNull, INT(10), classification=Flg} <br>
+     * フラグを示す
+     * @param determination The determination, true or false. (basically NotNull: error as default, or no condition as option)
+     */
+    public void setNewAcceptableFlg_Equal_AsBoolean(Boolean determination) {
+        setNewAcceptableFlg_Equal_AsFlg(CDef.Flg.of(determination).orElse(null));
+    }
+
+    /**
      * Equal(=). As True (1). And NullIgnored, OnlyOnceRegistered. <br>
      * はい: 有効を示す
      */

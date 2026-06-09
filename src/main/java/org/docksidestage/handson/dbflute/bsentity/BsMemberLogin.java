@@ -103,6 +103,16 @@ public abstract class BsMemberLogin extends AbstractEntity implements DomainEnti
     }
 
     /**
+     * Set the value of mobileLoginFlg as boolean. <br>
+     * MOBILE_LOGIN_FLG: {NotNull, INT(10), classification=Flg} <br>
+     * フラグを示す
+     * @param determination The determination, true or false. (NullAllowed: if null, null value is set to the column)
+     */
+    public void setMobileLoginFlgAsBoolean(Boolean determination) {
+        setMobileLoginFlgAsFlg(CDef.Flg.of(determination).orElse(null));
+    }
+
+    /**
      * Get the value of loginMemberStatusCode as the classification of MemberStatus. <br>
      * LOGIN_MEMBER_STATUS_CODE: {IX, NotNull, CHAR(3), FK to member_status, classification=MemberStatus} <br>
      * 入会から退会までの会員のステータスを示す
@@ -222,6 +232,16 @@ public abstract class BsMemberLogin extends AbstractEntity implements DomainEnti
     public boolean isLoginMemberStatusCode仮会員() {
         CDef.MemberStatus cdef = getLoginMemberStatusCodeAsMemberStatus();
         return cdef != null ? cdef.equals(CDef.MemberStatus.仮会員) : false;
+    }
+
+    /**
+     * サービスを利用できる会員。正式会員と仮会員が該当する <br>
+     * The group elements:[正式会員, 仮会員]
+     * @return The determination, true or false.
+     */
+    public boolean isLoginMemberStatusCode_ServiceAvailable() {
+        CDef.MemberStatus cdef = getLoginMemberStatusCodeAsMemberStatus();
+        return cdef != null && cdef.isServiceAvailable();
     }
 
     // ===================================================================================

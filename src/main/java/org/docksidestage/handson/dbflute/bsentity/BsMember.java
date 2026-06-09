@@ -182,6 +182,16 @@ public abstract class BsMember extends AbstractEntity implements DomainEntity {
         return cdef != null ? cdef.equals(CDef.MemberStatus.仮会員) : false;
     }
 
+    /**
+     * サービスを利用できる会員。正式会員と仮会員が該当する <br>
+     * The group elements:[正式会員, 仮会員]
+     * @return The determination, true or false.
+     */
+    public boolean isMemberStatusCode_ServiceAvailable() {
+        CDef.MemberStatus cdef = getMemberStatusCodeAsMemberStatus();
+        return cdef != null && cdef.isServiceAvailable();
+    }
+
     // ===================================================================================
     //                                                                    Foreign Property
     //                                                                    ================
