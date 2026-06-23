@@ -27,6 +27,27 @@ public class MemberNss {
     }
     /**
      * With nested relation columns to select clause. <br>
+     * member_address by my MEMBER_ID, named 'memberAddressAsValid'. <br>
+     * 有効な会員住所(引数の日時時点で有効。現在日時を渡せば現在住所)
+     * @param targetDate The bind parameter of fixed condition for targetDate. (NotNull)
+     * @return The set-upper of more nested relation. {...with[nested-relation].with[more-nested-relation]} (NotNull)
+     */
+    public MemberAddressNss withMemberAddressAsValid(final java.time.LocalDate targetDate) {
+        _query.xdoNss(() -> _query.queryMemberAddressAsValid(targetDate));
+        return new MemberAddressNss(_query.queryMemberAddressAsValid(targetDate));
+    }
+    /**
+     * With nested relation columns to select clause. <br>
+     * member_login by my MEMBER_ID, named 'memberLoginAsLatest'. <br>
+     * 最新のログイン(会員ごとに最大のLOGIN_DATETIME)
+     * @return The set-upper of more nested relation. {...with[nested-relation].with[more-nested-relation]} (NotNull)
+     */
+    public MemberLoginNss withMemberLoginAsLatest() {
+        _query.xdoNss(() -> _query.queryMemberLoginAsLatest());
+        return new MemberLoginNss(_query.queryMemberLoginAsLatest());
+    }
+    /**
+     * With nested relation columns to select clause. <br>
      * member_security by MEMBER_ID, named 'memberSecurityAsOne'.
      * @return The set-upper of more nested relation. {...with[nested-relation].with[more-nested-relation]} (NotNull)
      */

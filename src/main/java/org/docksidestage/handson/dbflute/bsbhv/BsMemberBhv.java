@@ -129,7 +129,7 @@ public abstract class BsMemberBhv extends AbstractBehaviorWritable<Member, Membe
 
     /**
      * Select the entity by the primary-key value.
-     * @param memberId : PK, ID, NotNull, INT(10). (NotNull)
+     * @param memberId : PK, ID, NotNull, INT(10), FK to MEMBER_ADDRESS. (NotNull)
      * @return The optional entity selected by the PK. (NotNull: if no data, empty entity)
      * @throws EntityAlreadyDeletedException When get(), required() of return value is called and the value is null, which means entity has already been deleted (not found).
      * @throws EntityDuplicatedException When the entity has been duplicated.
@@ -558,6 +558,22 @@ public abstract class BsMemberBhv extends AbstractBehaviorWritable<Member, Membe
      */
     public List<MemberStatus> pulloutMemberStatus(List<Member> memberList)
     { return helpPulloutInternally(memberList, "memberStatus"); }
+
+    /**
+     * Pull out the list of foreign table 'MemberAddress'.
+     * @param memberList The list of member. (NotNull, EmptyAllowed)
+     * @return The list of foreign table. (NotNull, EmptyAllowed, NotNullElement)
+     */
+    public List<MemberAddress> pulloutMemberAddressAsValid(List<Member> memberList)
+    { return helpPulloutInternally(memberList, "memberAddressAsValid"); }
+
+    /**
+     * Pull out the list of foreign table 'MemberLogin'.
+     * @param memberList The list of member. (NotNull, EmptyAllowed)
+     * @return The list of foreign table. (NotNull, EmptyAllowed, NotNullElement)
+     */
+    public List<MemberLogin> pulloutMemberLoginAsLatest(List<Member> memberList)
+    { return helpPulloutInternally(memberList, "memberLoginAsLatest"); }
 
     /**
      * Pull out the list of referrer-as-one table 'MemberSecurity'.

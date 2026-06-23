@@ -521,7 +521,7 @@ pre.spolicyviodisp {
 		<td class="rownumcell">1</td>
 		<td class="namecell" data-name="member"><a href="#member" title="type=TABLE, primaryKey={MEMBER_ID}, nameLength=6, columnCount=11">member</a></td>
 		<td class="typecell">TABLE</td>
-		<td class="relcell"><a href="#member_status" title="FK_MEMBER_MEMBER_STATUS">member_status</a></td>
+		<td class="relcell"><a href="#member_status" title="FK_MEMBER_MEMBER_STATUS">member_status</a>, <a href="#member_address" class="additionalfk" title="FK_MEMBER_MEMBER_ADDRESS_VALID: fixedCondition=&quot;$$foreignAlias$$.VALID_BEGIN_DATE &lt;= /*$$locationBase$$.parameterMapMemberAddressAsValid.targetDate*/null\n     and $$foreignAlias$$.VALID_END_DATE &gt;= /*$$locationBase$$.parameterMapMemberAddressAsValid.targetDate*/null&quot;, comment=有効な会員住所(引数の日時時点で有効。現在日時を渡せば現在住所)">member_address(AsValid)</a>, <a href="#member_login" class="additionalfk" title="FK_MEMBER_MEMBER_LOGIN_LATEST: fixedCondition=&quot;$$foreignAlias$$.LOGIN_DATETIME = ($$sqbegin$$\n            select max(login.LOGIN_DATETIME)\n              from MEMBER_LOGIN login\n             where login.MEMBER_ID = $$foreignAlias$$.MEMBER_ID\n          )$$sqend$$&quot;, comment=最新のログイン(会員ごとに最大のLOGIN_DATETIME)">member_login(AsLatest)</a></td>
 		<td class="relcell"><a href="#member_address" title="FK_MEMBER_ADDRESS_MEMBER">member_address</a>, <a href="#member_login" title="FK_MEMBER_LOGIN_MEMBER">member_login</a>, <a href="#member_security" title="FK_MEMBER_SECURITY_MEMBER">member_security</a>, <a href="#member_service" title="FK_MEMBER_SERVICE_MEMBER">member_service</a>, <a href="#member_withdrawal" title="FK_MEMBER_WITHDRAWAL_MEMBER">member_withdrawal</a>, <a href="#purchase" title="FK_PURCHASE_MEMBER">purchase</a></td>
 		<td class="commentcell member_comment"><pre>会員: 会員登録時にデータが登録される。
 基本的に物理削除はなく、退会したらステータスが退会会員になる。</pre></td>
@@ -718,7 +718,7 @@ member
 		<td class=" columnnamecell" id="member_member_id">MEMBER_ID</td>
 		<td class="typecell">INT</td>
 		<td class="sizecell"> 10 </td>
-		<td class="relcell">&nbsp;&nbsp;</td>
+		<td class="relcell"><a href="#member_address" class="additionalfk" title="FK_MEMBER_MEMBER_ADDRESS_VALID: fixedCondition=&quot;$$foreignAlias$$.VALID_BEGIN_DATE &lt;= /*$$locationBase$$.parameterMapMemberAddressAsValid.targetDate*/null\n     and $$foreignAlias$$.VALID_END_DATE &gt;= /*$$locationBase$$.parameterMapMemberAddressAsValid.targetDate*/null&quot;, comment=有効な会員住所(引数の日時時点で有効。現在日時を渡せば現在住所)">member_address(AsValid)</a>,<br><a href="#member_login" class="additionalfk" title="FK_MEMBER_MEMBER_LOGIN_LATEST: fixedCondition=&quot;$$foreignAlias$$.LOGIN_DATETIME = ($$sqbegin$$\n            select max(login.LOGIN_DATETIME)\n              from MEMBER_LOGIN login\n             where login.MEMBER_ID = $$foreignAlias$$.MEMBER_ID\n          )$$sqend$$&quot;, comment=最新のログイン(会員ごとに最大のLOGIN_DATETIME)">member_login(AsLatest)</a>&nbsp;</td>
 		<td class="relcell"><a href="#member_address" title="FK_MEMBER_ADDRESS_MEMBER">member_address</a>,<br><a href="#member_login" title="FK_MEMBER_LOGIN_MEMBER">member_login</a>,<br><a href="#member_security" title="FK_MEMBER_SECURITY_MEMBER">member_security</a>,<br><a href="#member_service" title="FK_MEMBER_SERVICE_MEMBER">member_service</a>,<br><a href="#member_withdrawal" title="FK_MEMBER_WITHDRAWAL_MEMBER">member_withdrawal</a>,<br><a href="#purchase" title="FK_PURCHASE_MEMBER">purchase</a>&nbsp;</td>
 		<td class="relcell"> &nbsp;</td>
 		<td class="commentcell"><pre>会員ID: 会員を識別するID。連番として基本的に自動採番される。

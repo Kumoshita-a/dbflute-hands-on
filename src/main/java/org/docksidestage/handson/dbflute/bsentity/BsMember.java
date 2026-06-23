@@ -29,7 +29,7 @@ public abstract class BsMember extends AbstractEntity implements DomainEntity {
     // ===================================================================================
     //                                                                           Attribute
     //                                                                           =========
-    /** MEMBER_ID: {PK, ID, NotNull, INT(10)} */
+    /** MEMBER_ID: {PK, ID, NotNull, INT(10), FK to MEMBER_ADDRESS} */
     protected Integer _memberId;
 
     /** MEMBER_NAME: {IX, NotNull, VARCHAR(160)} */
@@ -216,6 +216,52 @@ public abstract class BsMember extends AbstractEntity implements DomainEntity {
         _memberStatus = memberStatus;
     }
 
+    /** member_address by my MEMBER_ID, named 'memberAddressAsValid'. */
+    protected OptionalEntity<MemberAddress> _memberAddressAsValid;
+
+    /**
+     * [get] member_address by my MEMBER_ID, named 'memberAddressAsValid'. <br>
+     * 有効な会員住所(引数の日時時点で有効。現在日時を渡せば現在住所) <br>
+     * Optional: alwaysPresent(), ifPresent().orElse(), get(), ...
+     * @return The entity of foreign property 'memberAddressAsValid'. (NotNull, EmptyAllowed: when e.g. null FK column, no setupSelect)
+     */
+    public OptionalEntity<MemberAddress> getMemberAddressAsValid() {
+        if (_memberAddressAsValid == null) { _memberAddressAsValid = OptionalEntity.relationEmpty(this, "memberAddressAsValid"); }
+        return _memberAddressAsValid;
+    }
+
+    /**
+     * [set] member_address by my MEMBER_ID, named 'memberAddressAsValid'. <br>
+     * 有効な会員住所(引数の日時時点で有効。現在日時を渡せば現在住所)
+     * @param memberAddressAsValid The entity of foreign property 'memberAddressAsValid'. (NullAllowed)
+     */
+    public void setMemberAddressAsValid(OptionalEntity<MemberAddress> memberAddressAsValid) {
+        _memberAddressAsValid = memberAddressAsValid;
+    }
+
+    /** member_login by my MEMBER_ID, named 'memberLoginAsLatest'. */
+    protected OptionalEntity<MemberLogin> _memberLoginAsLatest;
+
+    /**
+     * [get] member_login by my MEMBER_ID, named 'memberLoginAsLatest'. <br>
+     * 最新のログイン(会員ごとに最大のLOGIN_DATETIME) <br>
+     * Optional: alwaysPresent(), ifPresent().orElse(), get(), ...
+     * @return The entity of foreign property 'memberLoginAsLatest'. (NotNull, EmptyAllowed: when e.g. null FK column, no setupSelect)
+     */
+    public OptionalEntity<MemberLogin> getMemberLoginAsLatest() {
+        if (_memberLoginAsLatest == null) { _memberLoginAsLatest = OptionalEntity.relationEmpty(this, "memberLoginAsLatest"); }
+        return _memberLoginAsLatest;
+    }
+
+    /**
+     * [set] member_login by my MEMBER_ID, named 'memberLoginAsLatest'. <br>
+     * 最新のログイン(会員ごとに最大のLOGIN_DATETIME)
+     * @param memberLoginAsLatest The entity of foreign property 'memberLoginAsLatest'. (NullAllowed)
+     */
+    public void setMemberLoginAsLatest(OptionalEntity<MemberLogin> memberLoginAsLatest) {
+        _memberLoginAsLatest = memberLoginAsLatest;
+    }
+
     /** member_security by MEMBER_ID, named 'memberSecurityAsOne'. */
     protected OptionalEntity<MemberSecurity> _memberSecurityAsOne;
 
@@ -373,6 +419,10 @@ public abstract class BsMember extends AbstractEntity implements DomainEntity {
         StringBuilder sb = new StringBuilder();
         if (_memberStatus != null && _memberStatus.isPresent())
         { sb.append(li).append(xbRDS(_memberStatus, "memberStatus")); }
+        if (_memberAddressAsValid != null && _memberAddressAsValid.isPresent())
+        { sb.append(li).append(xbRDS(_memberAddressAsValid, "memberAddressAsValid")); }
+        if (_memberLoginAsLatest != null && _memberLoginAsLatest.isPresent())
+        { sb.append(li).append(xbRDS(_memberLoginAsLatest, "memberLoginAsLatest")); }
         if (_memberSecurityAsOne != null && _memberSecurityAsOne.isPresent())
         { sb.append(li).append(xbRDS(_memberSecurityAsOne, "memberSecurityAsOne")); }
         if (_memberServiceAsOne != null && _memberServiceAsOne.isPresent())
@@ -417,6 +467,10 @@ public abstract class BsMember extends AbstractEntity implements DomainEntity {
         StringBuilder sb = new StringBuilder();
         if (_memberStatus != null && _memberStatus.isPresent())
         { sb.append(dm).append("memberStatus"); }
+        if (_memberAddressAsValid != null && _memberAddressAsValid.isPresent())
+        { sb.append(dm).append("memberAddressAsValid"); }
+        if (_memberLoginAsLatest != null && _memberLoginAsLatest.isPresent())
+        { sb.append(dm).append("memberLoginAsLatest"); }
         if (_memberSecurityAsOne != null && _memberSecurityAsOne.isPresent())
         { sb.append(dm).append("memberSecurityAsOne"); }
         if (_memberServiceAsOne != null && _memberServiceAsOne.isPresent())
@@ -444,7 +498,7 @@ public abstract class BsMember extends AbstractEntity implements DomainEntity {
     //                                                                            Accessor
     //                                                                            ========
     /**
-     * [get] MEMBER_ID: {PK, ID, NotNull, INT(10)} <br>
+     * [get] MEMBER_ID: {PK, ID, NotNull, INT(10), FK to MEMBER_ADDRESS} <br>
      * 会員ID: 会員を識別するID。連番として基本的に自動採番される。<br>
      * （会員IDだけに限らず）採番方法はDBMSによって変わる。
      * @return The value of the column 'MEMBER_ID'. (basically NotNull if selected: for the constraint)
@@ -455,7 +509,7 @@ public abstract class BsMember extends AbstractEntity implements DomainEntity {
     }
 
     /**
-     * [set] MEMBER_ID: {PK, ID, NotNull, INT(10)} <br>
+     * [set] MEMBER_ID: {PK, ID, NotNull, INT(10), FK to MEMBER_ADDRESS} <br>
      * 会員ID: 会員を識別するID。連番として基本的に自動採番される。<br>
      * （会員IDだけに限らず）採番方法はDBMSによって変わる。
      * @param memberId The value of the column 'MEMBER_ID'. (basically NotNull if update: for the constraint)

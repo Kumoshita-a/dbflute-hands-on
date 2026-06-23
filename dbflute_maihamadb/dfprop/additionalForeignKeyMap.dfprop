@@ -34,9 +34,26 @@
 # *The line that starts with '#' means comment-out.
 #
 map:{
-    #; FK_MEMBER_MEMBER_STATUS_CODE = map:{
-    #    ; localTableName  = MEMBER             ; foreignTableName  = MEMBER_STATUS
-    #    ; localColumnName = MEMBER_STATUS_CODE ; foreignColumnName = MEMBER_STATUS_CODE
-    #}
+    # 業務的one-to-one: 有効期間で絞った会員住所 (引数targetDate時点で有効、現在日時を渡せば現在住所)
+    ; FK_MEMBER_MEMBER_ADDRESS_VALID = map:{
+        ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
+        ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+        ; fixedCondition = $$foreignAlias$$.VALID_BEGIN_DATE <= /*targetDate(Date)*/null
+            and $$foreignAlias$$.VALID_END_DATE >= /*targetDate(Date)*/null
+        ; fixedSuffix = AsValid
+        ; comment = 有効な会員住所(引数の日時時点で有効。現在日時を渡せば現在住所)
+    }
+    # 導出的one-to-one: 会員ごとの最新ログイン (相関サブクエリでLOGIN_DATETIMEが最大の1件)
+    ; FK_MEMBER_MEMBER_LOGIN_LATEST = map:{
+        ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
+        ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+        ; fixedCondition = $$foreignAlias$$.LOGIN_DATETIME = ($$sqbegin$$
+            select max(login.LOGIN_DATETIME)
+              from MEMBER_LOGIN login
+             where login.MEMBER_ID = $$foreignAlias$$.MEMBER_ID
+          )$$sqend$$
+        ; fixedSuffix = AsLatest
+        ; comment = 最新のログイン(会員ごとに最大のLOGIN_DATETIME)
+    }
 }
 # ----------------/

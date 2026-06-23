@@ -145,6 +145,20 @@ public class LoaderOfMember {
         return _foreignMemberStatusLoader;
     }
 
+    protected LoaderOfMemberAddress _foreignMemberAddressAsValidLoader;
+    public LoaderOfMemberAddress pulloutMemberAddressAsValid() {
+        if (_foreignMemberAddressAsValidLoader == null)
+        { _foreignMemberAddressAsValidLoader = new LoaderOfMemberAddress().ready(myBhv().pulloutMemberAddressAsValid(_selectedList), _selector); }
+        return _foreignMemberAddressAsValidLoader;
+    }
+
+    protected LoaderOfMemberLogin _foreignMemberLoginAsLatestLoader;
+    public LoaderOfMemberLogin pulloutMemberLoginAsLatest() {
+        if (_foreignMemberLoginAsLatestLoader == null)
+        { _foreignMemberLoginAsLatestLoader = new LoaderOfMemberLogin().ready(myBhv().pulloutMemberLoginAsLatest(_selectedList), _selector); }
+        return _foreignMemberLoginAsLatestLoader;
+    }
+
     protected LoaderOfMemberSecurity _foreignMemberSecurityAsOneLoader;
     public LoaderOfMemberSecurity pulloutMemberSecurityAsOne() {
         if (_foreignMemberSecurityAsOneLoader == null)
