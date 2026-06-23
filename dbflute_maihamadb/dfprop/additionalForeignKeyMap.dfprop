@@ -48,10 +48,10 @@ map:{
         ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
         ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
         ; fixedCondition = $$foreignAlias$$.LOGIN_DATETIME = ($$sqbegin$$
-            select max(login.LOGIN_DATETIME)
-              from MEMBER_LOGIN login
-             where login.MEMBER_ID = $$foreignAlias$$.MEMBER_ID
-          )$$sqend$$
+select max(login.LOGIN_DATETIME)
+  from MEMBER_LOGIN login
+ where login.MEMBER_ID = $$foreignAlias$$.MEMBER_ID
+)$$sqend$$
         ; fixedSuffix = AsLatest
         ; comment = 最新のログイン(会員ごとに最大のLOGIN_DATETIME)
     }

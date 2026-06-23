@@ -121,6 +121,7 @@ public class HandsOn05Test extends UnitContainerTestCase {
         ListResultBean<Purchase> purchaseList = purchaseBhv.selectList(cb -> {
             cb.setupSelect_Member().withMemberStatus();
             cb.setupSelect_Member().withMemberAddressAsValid(targetDate).withRegion();
+            // #1on1: CDefじゃなくてで setRegionId_Equal_千葉() でもOK (2026/06/23)
             cb.query().queryMember().queryMemberAddressAsValid(targetDate).setRegionId_Equal_AsRegion(CDef.Region.千葉);
             cb.query().addOrderBy_PurchaseDatetime_Desc();
         });
@@ -181,4 +182,10 @@ public class HandsOn05Test extends UnitContainerTestCase {
             assertEquals(expectedMaxDatetime, latest.getLoginDatetime());
         }
     }
+    
+    // #1on1: 現場での業務的one-to-oneを見てみた (2026/06/23)
+    // OverRelation の話も紹介。
+    // 業務的many-to-oneの話も紹介。
+    
+    // #1on1: テストデータの登録時チェックはまだ (2026/06/23)
 }

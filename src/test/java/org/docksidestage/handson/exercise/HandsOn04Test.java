@@ -14,10 +14,7 @@ import javax.annotation.Resource;
 
 import org.dbflute.cbean.result.ListResultBean;
 import org.dbflute.optional.OptionalThing;
-import org.dbflute.util.DfReflectionUtil;
 import org.docksidestage.handson.dbflute.allcommon.CDef;
-import org.docksidestage.handson.dbflute.cbean.PurchaseCB;
-import org.docksidestage.handson.dbflute.cbean.cq.MemberCQ;
 import org.docksidestage.handson.dbflute.cbean.cq.bs.AbstractBsMemberCQ;
 import org.docksidestage.handson.dbflute.exbhv.MemberBhv;
 import org.docksidestage.handson.dbflute.exbhv.PurchaseBhv;
@@ -655,7 +652,7 @@ public class HandsOn04Test extends UnitContainerTestCase {
         }
     }
 
-    // TODO jflute 次回1on1にてふぉろー (2026/06/09)
+    // done jflute 次回1on1にてふぉろー (2026/06/09)
     /**
      * 会員ステータスの表示順(subItem)で会員を並べる
      * <pre>
@@ -705,6 +702,7 @@ public class HandsOn04Test extends UnitContainerTestCase {
         assertEquals(expectedMemberIdOrder, actualMemberIdOrder);
     }
 
+    // #1on1: 現場でのsubItem。ちょこちょこ使われている (2026/06/23)
     /**
      * 会員のステータス区分値の subItem(displayOrder)を数値で取得する。
      * @param member 会員 (NotNull)
@@ -712,6 +710,7 @@ public class HandsOn04Test extends UnitContainerTestCase {
      */
     private int statusDisplayOrderOf(Member member) {
         CDef.MemberStatus status = member.getMemberStatusCodeAsMemberStatus();
+        // #1on1: status.displayOrder(); が使える (2026/06/23)
         return Integer.parseInt((String) status.subItemMap().get("displayOrder"));
     }
 }
